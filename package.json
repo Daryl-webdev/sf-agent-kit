@@ -1,14 +1,16 @@
 {
-  "name": "my-agent-kit",
+  "name": "sf-agent-kit",
   "version": "1.0.0",
-  "description": "Personal GitHub Copilot agents and skills kit",
+  "description": "Portable Salesforce agents and skills for GitHub Copilot and OpenAI Codex",
   "type": "module",
   "bin": {
-    "my-agent-kit": "bin/install.mjs"
+    "sf-agent-kit": "bin/install.mjs"
   },
   "scripts": {
-    "install:user": "node bin/install.mjs --user",
-    "install:workspace": "node bin/install.mjs --workspace"
+    "install:all": "node bin/install.mjs --all",
+    "install:copilot": "node bin/install.mjs --copilot",
+    "install:codex": "node bin/install.mjs --codex",
+    "install:workspace": "node bin/install.mjs --all --workspace"
   },
   "files": [
     "bin",

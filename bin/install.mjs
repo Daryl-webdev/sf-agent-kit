@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Installs personal Copilot agents + skills to the user (~/.copilot) or a workspace (./.agents).
-import { cp, mkdir, readdir, stat } from "node:fs/promises";
+// Installs personal agents + skills for Copilot (~/.copilot) and Codex (~/.codex), or a workspace (./.agents, ./.codex).
+import { cp, mkdir, readdir, stat, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -12,11 +12,25 @@ const args = process.argv.slice(2);
 const workspace = args.includes("--workspace");
 const force = args.includes("--force");
 
-const targets = workspace
-  ? { agents: resolve(process.cwd(), ".agents/agents"), skills: resolve(process.cwd(), ".agents/skills") }
-  : { agents: join(homedir(), ".copilot/agents"), skills: join(homedir(), ".copilot/skills") };
+// Tool selection: default to all when none specified.
+const wantCopilot = args.includes("--copilot") || args.includes("--all");
+const wantCodex = args.includes("--codex") || args.includes("--all");
+const noneSelected = !wantCopilot && !wantCodex;
+const copilot = wantCopilot || noneSelected;
+const codex = wantCodex || noneSelected;
 
-async function install(name, src, dest) {
+// The single agent Codex uses (stored in its AGENTS.md).
+const CODEX_AGENT = "SF-Agent (Skill Orch).agent.md";
+
+const home = homedir();
+const targets = {
+  copilotAgents: workspace ? resolve(process.cwd(), ".agents/agents") : join(home, ".copilot/agents"),
+  copilotSkills: workspace ? resolve(process.cwd(), ".agents/skills") : join(home, ".copilot/skills"),
+  codexSkills: workspace ? resolve(process.cwd(), ".codex/skills") : join(home, ".codex/skills"),
+  codexAgents: workspace ? resolve(process.cwd(), ".codex/AGENTS.md") : join(home, ".codex/AGENTS.md"),
+};
+
+async function copyTree(name, src, dest) {
   if (!existsSync(src)) return;
   await mkdir(dest, { recursive: true });
   for (const entry of await readdir(src)) {
@@ -32,7 +46,37 @@ async function install(name, src, dest) {
   }
 }
 
-console.log(`Installing my-agent-kit -> ${workspace ? "workspace (.agents)" : "user (~/.copilot)"}`);
-await install("agents", join(root, "agents"), targets.agents);
-await install("skills", join(root, "skills"), targets.skills);
+// Strip YAML frontmatter, returning the markdown body.
+function stripFrontmatter(text) {
+  const m = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  return m ? text.slice(m[0].length).replace(/^\s+/, "") : text;
+}
+
+async function installCodexAgent(srcAgent, destFile) {
+  if (!existsSync(srcAgent)) {
+    console.log(`skip   codex/AGENTS.md (source agent missing)`);
+    return;
+  }
+  if (existsSync(destFile) && !force) {
+    console.log(`skip   codex/AGENTS.md (exists, use --force to overwrite)`);
+    return;
+  }
+  await mkdir(dirname(destFile), { recursive: true });
+  const body = stripFrontmatter(await readFile(srcAgent, "utf8"));
+  await writeFile(destFile, body, "utf8");
+  console.log(`install codex/AGENTS.md`);
+}
+
+console.log(`Installing my-agent-kit -> ${workspace ? "workspace (.agents/.codex)" : "user (~/.copilot, ~/.codex)"}`);
+
+if (copilot) {
+  await copyTree("copilot/agents", join(root, "agents"), targets.copilotAgents);
+  await copyTree("copilot/skills", join(root, "skills"), targets.copilotSkills);
+}
+
+if (codex) {
+  await copyTree("codex/skills", join(root, "skills"), targets.codexSkills);
+  await installCodexAgent(join(root, "agents", CODEX_AGENT), targets.codexAgents);
+}
+
 console.log("Done.");
