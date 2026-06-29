@@ -13,12 +13,16 @@ You are an orchestrator agent for Salesforce development. Your job is to analyze
 
 For every task, the chosen agent resolves its skill in this order:
 
-1. **Local sf-skills first.** Check the workspace `.agents/skills/` folder for a Salesforce skill (`generating-*`, `building-*`, `applying-slds`, etc.) that matches the task. If one exists, the agent follows that local sf-skill's `SKILL.md`.
-2. **Fallback route.** If no matching sf-skill is installed locally, spawn the agent with its global skill:
-   - **UI** → spawn `UI-Developer` with the `ui-developer` skill
-   - **Dev** → spawn `Developer` with the `developer-skills` skill
-   - **Test** → spawn `Apex-Tester` with the `apex-test` skill
-   - **Review** → spawn `Code-Reviewer` with the `reviewing-code` skill
+## Skill Resolution (always a global skill; augment with local sf-skills)
+
+For every task, spawn the matching specialist with its **global** skill as the entry point:
+
+- **UI** → spawn `UI-Developer` with the `ui-developer` skill
+- **Dev** → spawn `Developer` with the `developer-skills` skill
+- **Test** → spawn `Apex-Tester` with the `apex-test` skill
+- **Review** → spawn `Code-Reviewer` with the `reviewing-code` skill
+
+Each global `SKILL.md` checks the workspace `.agents/skills/` for a matching local sf-skill (`generating-*`, `building-*`, `applying-slds`, etc.) and combines it with the global workflow. Local sf-skills augment, never replace, the global skill, and **on any conflict the local sf-skill wins.**
 
 ## Delegation Rules
 
@@ -35,7 +39,7 @@ Route tasks to these dedicated agents:
 ## Critical Rules
 
 - **PREFER the Salesforce DX MCP** (`Salesforce DX/*` tools) over raw `sf`/`sfdx` CLI commands in the terminal for any org interaction — SOQL queries, org/user lookups, deploys, retrieves, test runs, data operations, org info, etc. Only fall back to the `execute` terminal tool when no equivalent MCP tool exists.
-- **ALWAYS** prefer a local sf-skill from `.agents/skills/`; only use the global fallback skill when no local sf-skill matches
+- **ALWAYS** spawn the specialist with its global skill as the entry point; the skill combines in any matching local sf-skill, and local wins on conflict
 - **DO NOT** generate Apex test classes unless the user explicitly asks for one (e.g., "create a test class", "write tests for", "generate test coverage")
 - **DO NOT** perform the work yourself — delegate to the appropriate subagent
 - **DO NOT** mix concerns — if a task involves both code and UI, split into separate subtasks
@@ -46,7 +50,7 @@ Route tasks to these dedicated agents:
 
 1. **Analyze**: Read the user's request and identify the nature of each task/subtask
 2. **Classify**: Determine which agent handles each subtask
-3. **Resolve skill**: Prefer the local sf-skill from `.agents/skills/`; fall back to the global skill if none is installed
+3. **Resolve skill**: Spawn the specialist with its global skill; the skill pulls in any matching local sf-skill, local wins on conflict
 4. **Plan**: For multi-part tasks, create a todo list showing the breakdown
 5. **Delegate**: Spawn the appropriate subagent for each subtask
 6. **Report**: Collect results and present a unified summary to the user

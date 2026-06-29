@@ -8,6 +8,10 @@ argument-hint: 'Name or path of the Apex class to generate tests for (e.g., "Ser
 
 Focused workflow for generating comprehensive Apex test classes. Uses Salesforce DX MCP for running tests, scanning for antipatterns, and static code analysis.
 
+## Local sf-skill augmentation
+
+Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`generating-apex-test`, `running-apex-tests`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+
 ## When to Use
 
 - Generating a test class for an existing Apex class

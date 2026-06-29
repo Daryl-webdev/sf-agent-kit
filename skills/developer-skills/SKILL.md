@@ -8,6 +8,10 @@ argument-hint: 'Describe the coding task (e.g., "create an Apex controller for i
 
 Full multi-step workflow for Salesforce and React code development. Uses Context7 MCP for React documentation lookup.
 
+## Local sf-skill augmentation
+
+Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`generating-apex`, `generating-lwc-components`, `generating-flow`, `building-*`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+
 ## When to Use
 
 - Writing or modifying Apex classes, triggers, or test classes

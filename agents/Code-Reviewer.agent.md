@@ -31,7 +31,7 @@ In **both** modes you never edit code and never call another agent yourself — 
 
 ## Skills
 
-Use the matching `.agents/skills/` sf-skill; else fall back to `reviewing-code`. The skill defines the checklist, severity table, routing domains, and output templates — follow it.
+Load the `reviewing-code` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill and combines it with the global workflow; on conflict the local sf-skill wins. The skill defines the checklist, severity table, routing domains, and output templates — follow it.
 
 ## Constraints
 

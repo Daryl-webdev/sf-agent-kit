@@ -8,6 +8,10 @@ argument-hint: 'Describe the UI task (e.g., "design a dark mode color theme for 
 
 Full multi-step workflow for UI-related tasks including mock design, CSS, Salesforce Lightning Design System (SLDS), color themes, and React UI development.
 
+## Local sf-skill augmentation
+
+Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`applying-slds`, `validating-slds`, `uplifting-components-to-slds2`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+
 ## When to Use
 
 - Creating or refining mock designs and wireframes
