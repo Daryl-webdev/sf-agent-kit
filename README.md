@@ -62,7 +62,7 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 | `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`). Bare flag opens the CLI's interactive picker; `--sf-skills=all` installs everything; `--sf-skills=a,b` installs specific skills |
 | `--no-sf-skills` | Skip the sf-skills prompt entirely |
 
-> sf-skills installs via `npx skills add forcedotcom/sf-skills`. The target agents (`github-copilot`/`codex`) and scope (`-g` for user, project for `--workspace`) are derived from your flags. `--sf-skills=all` or `--sf-skills=a,b` add `-y` to skip all CLI prompts; the bare flag leaves selection interactive.
+> sf-skills installs via `npx skills add forcedotcom/sf-skills`. The target agents (`github-copilot`/`codex`) are derived from your flags and sf-skills always install at project (local) scope — `.agents/skills` — never user-level. `--sf-skills=all` or `--sf-skills=a,b` add `-y` to skip all CLI prompts; the bare flag leaves selection interactive.
 
 ## Command reference
 

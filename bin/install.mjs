@@ -84,12 +84,12 @@ async function maybeInstallSfSkills() {
     install = answer === "y" || answer === "yes";
   }
   if (!install) return;
-  // Map our tool flags to the `skills` CLI agent names; scope follows --workspace.
+  // Map our tool flags to the `skills` CLI agent names; sf-skills always install at project (local) scope.
   const cliAgents = [];
   if (copilot) cliAgents.push("github-copilot");
   if (codex) cliAgents.push("codex");
   const agentArgs = cliAgents.flatMap((a) => ["-a", a]);
-  const scopeArgs = workspace ? [] : ["-g"];
+  const scopeArgs = []; // always project-level (.agents/skills), never -g
 
   const list = sfSkillsValue.split(",").map((s) => s.trim()).filter(Boolean);
   let selectionArgs;
