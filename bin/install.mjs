@@ -5,12 +5,16 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import { createInterface } from "node:readline/promises";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 const args = process.argv.slice(2);
 const workspace = args.includes("--workspace");
 const force = args.includes("--force");
+const sfSkillsFlag = args.includes("--sf-skills");
+const noSfSkills = args.includes("--no-sf-skills");
 
 // Tool selection: default to all when none specified.
 const wantCopilot = args.includes("--copilot") || args.includes("--all");
@@ -67,6 +71,25 @@ async function installCodexAgent(srcAgent, destFile) {
   console.log(`install codex/AGENTS.md`);
 }
 
+// Optionally pull in Salesforce's official sf-skills via the `skills` CLI.
+async function maybeInstallSfSkills() {
+  if (noSfSkills) return;
+  let install = sfSkillsFlag;
+  if (!install && process.stdin.isTTY && process.stdout.isTTY) {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const answer = (await rl.question("Also install Salesforce sf-skills (forcedotcom/sf-skills)? [y/N] ")).trim().toLowerCase();
+    rl.close();
+    install = answer === "y" || answer === "yes";
+  }
+  if (!install) return;
+  console.log("Installing sf-skills -> npx skills add forcedotcom/sf-skills");
+  const r = spawnSync("npx", ["-y", "skills", "add", "forcedotcom/sf-skills"], {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+  if (r.status !== 0) console.log("warn   sf-skills install failed; run `npx skills add forcedotcom/sf-skills` manually");
+}
+
 console.log(`Installing my-agent-kit -> ${workspace ? "workspace (.agents/.codex)" : "user (~/.copilot, ~/.codex)"}`);
 
 if (copilot) {
@@ -78,5 +101,7 @@ if (codex) {
   await copyTree("codex/skills", join(root, "skills"), targets.codexSkills);
   await installCodexAgent(join(root, "agents", CODEX_AGENT), targets.codexAgents);
 }
+
+await maybeInstallSfSkills();
 
 console.log("Done.");
