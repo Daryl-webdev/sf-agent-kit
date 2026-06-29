@@ -13,7 +13,9 @@ const root = resolve(__dirname, "..");
 const args = process.argv.slice(2);
 const workspace = args.includes("--workspace");
 const force = args.includes("--force");
-const sfSkillsFlag = args.includes("--sf-skills");
+const sfSkillsArg = args.find((a) => a === "--sf-skills" || a.startsWith("--sf-skills="));
+const sfSkillsFlag = sfSkillsArg !== undefined;
+const sfSkillsValue = sfSkillsArg && sfSkillsArg.includes("=") ? sfSkillsArg.split("=").slice(1).join("=") : "";
 const noSfSkills = args.includes("--no-sf-skills");
 
 // Tool selection: default to all when none specified.
@@ -82,11 +84,27 @@ async function maybeInstallSfSkills() {
     install = answer === "y" || answer === "yes";
   }
   if (!install) return;
-  console.log("Installing sf-skills -> npx skills add forcedotcom/sf-skills");
-  const r = spawnSync("npx", ["-y", "skills", "add", "forcedotcom/sf-skills"], {
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
+  // Map our tool flags to the `skills` CLI agent names; scope follows --workspace.
+  const cliAgents = [];
+  if (copilot) cliAgents.push("github-copilot");
+  if (codex) cliAgents.push("codex");
+  const agentArgs = cliAgents.flatMap((a) => ["-a", a]);
+  const scopeArgs = workspace ? [] : ["-g"];
+
+  const list = sfSkillsValue.split(",").map((s) => s.trim()).filter(Boolean);
+  let selectionArgs;
+  if (list.length === 0) {
+    // Bare --sf-skills: let the CLI's picker handle selection (stay interactive).
+    selectionArgs = [];
+  } else if (list.includes("all") || list.includes("*")) {
+    selectionArgs = ["--skill", "*", "-y"]; // non-interactive: every skill
+  } else {
+    selectionArgs = [...list.flatMap((name) => ["--skill", name]), "-y"]; // specific, non-interactive
+  }
+
+  const cmd = ["-y", "skills", "add", "forcedotcom/sf-skills", ...agentArgs, ...scopeArgs, ...selectionArgs];
+  console.log(`Installing sf-skills -> npx ${cmd.join(" ")}`);
+  const r = spawnSync("npx", cmd, { stdio: "inherit", shell: process.platform === "win32" });
   if (r.status !== 0) console.log("warn   sf-skills install failed; run `npx skills add forcedotcom/sf-skills` manually");
 }
 

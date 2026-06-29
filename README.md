@@ -59,10 +59,10 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 | `--codex` | Install to OpenAI Codex only |
 | `--workspace` | Install into the current repo instead of the user home directory |
 | `--force` | Overwrite existing files |
-| `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`) |
+| `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`). Bare flag opens the CLI's interactive picker; `--sf-skills=all` installs everything; `--sf-skills=a,b` installs specific skills |
 | `--no-sf-skills` | Skip the sf-skills prompt entirely |
 
-> When run interactively, the installer asks whether to add Salesforce's [sf-skills](https://github.com/forcedotcom/sf-skills) via `npx skills add forcedotcom/sf-skills`. They land in `.agents/skills`, which both tools read.
+> sf-skills installs via `npx skills add forcedotcom/sf-skills`. The target agents (`github-copilot`/`codex`) and scope (`-g` for user, project for `--workspace`) are derived from your flags. `--sf-skills=all` or `--sf-skills=a,b` add `-y` to skip all CLI prompts; the bare flag leaves selection interactive.
 
 ## Requirements
 
