@@ -64,6 +64,55 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 
 > sf-skills installs via `npx skills add forcedotcom/sf-skills`. The target agents (`github-copilot`/`codex`) and scope (`-g` for user, project for `--workspace`) are derived from your flags. `--sf-skills=all` or `--sf-skills=a,b` add `-y` to skip all CLI prompts; the bare flag leaves selection interactive.
 
+## Command reference
+
+All flags combine freely. Base command: `npx github:Daryl-webdev/sf-agent-kit`.
+
+**Tool selection**
+```bash
+npx github:Daryl-webdev/sf-agent-kit              # default: Copilot + Codex
+npx github:Daryl-webdev/sf-agent-kit --all        # both (explicit)
+npx github:Daryl-webdev/sf-agent-kit --copilot    # Copilot only
+npx github:Daryl-webdev/sf-agent-kit --codex      # Codex only
+```
+
+**Scope**
+```bash
+npx github:Daryl-webdev/sf-agent-kit --all                # user (~/.copilot, ~/.codex)
+npx github:Daryl-webdev/sf-agent-kit --all --workspace    # this repo (.agents, .codex)
+```
+
+**Force overwrite**
+```bash
+npx github:Daryl-webdev/sf-agent-kit --all --force
+npx github:Daryl-webdev/sf-agent-kit --copilot --workspace --force
+```
+
+**sf-skills**
+```bash
+npx github:Daryl-webdev/sf-agent-kit --all                  # interactive y/N prompt (default no)
+npx github:Daryl-webdev/sf-agent-kit --all --no-sf-skills   # skip prompt entirely
+npx github:Daryl-webdev/sf-agent-kit --all --sf-skills      # CLI interactive picker
+npx github:Daryl-webdev/sf-agent-kit --all --sf-skills=all  # all sf-skills, no prompts
+npx github:Daryl-webdev/sf-agent-kit --all --sf-skills=platform-apex-generate,automation-flow-generate
+```
+
+**Common combinations**
+```bash
+npx github:Daryl-webdev/sf-agent-kit --all --force --sf-skills=all        # everything, both tools, user
+npx github:Daryl-webdev/sf-agent-kit --copilot --sf-skills=all            # Copilot only + all sf-skills
+npx github:Daryl-webdev/sf-agent-kit --codex --workspace --sf-skills=all  # Codex, this repo + all sf-skills
+npx github:Daryl-webdev/sf-agent-kit --all --workspace --no-sf-skills     # both, repo-scoped, no sf-skills
+```
+
+**npm scripts (local clone)**
+```bash
+npm run install:all        # --all
+npm run install:copilot    # --copilot
+npm run install:codex      # --codex
+npm run install:workspace  # --all --workspace
+```
+
 ## Requirements
 
 - Node.js >= 18
