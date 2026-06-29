@@ -1,0 +1,22 @@
+{
+  "name": "my-agent-kit",
+  "version": "1.0.0",
+  "description": "Personal GitHub Copilot agents and skills kit",
+  "type": "module",
+  "bin": {
+    "my-agent-kit": "bin/install.mjs"
+  },
+  "scripts": {
+    "install:user": "node bin/install.mjs --user",
+    "install:workspace": "node bin/install.mjs --workspace"
+  },
+  "files": [
+    "bin",
+    "agents",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
