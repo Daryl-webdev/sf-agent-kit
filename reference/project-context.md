@@ -4,24 +4,26 @@ Fill this in with your org's facts. Agents read it to ground every plan and all 
 
 ## Org & package
 
-- API version (`<API_VERSION>`): TODO (e.g., `62.0`)
+- API version (`<API_VERSION>`): `66.0`
 - Package/namespace prefix (`<PREFIX>`): TODO (blank if unmanaged)
-- Source format root: TODO (e.g., `force-app/main/default`)
+- Source format root: `force-app/main/default`
 - Primary org type: TODO (production / sandbox / scratch)
 
-## Naming prefixes & conventions
+## Naming prefixes
 
-- Custom object/field prefix: TODO (e.g., `acme_`)
-- Any domain-specific suffixes beyond coding-standards.md: TODO
+These fully control prefixing. coding-standards.md reads them generically, so you **never edit that file** when adding or changing a prefix — just edit the rows below.
 
-## Key data model
+**Apply to all** (optional): TODO — default prefix for any artifact without a specific rule below. Leave blank for no global prefix.
 
-List the core objects this codebase works with and their relationships.
+**Specific prefixes** (optional; override apply-to-all; add or remove rows freely):
 
-| Object (API name) | Purpose | Key relationships |
-|-------------------|---------|-------------------|
-| TODO | TODO | TODO |
-| TODO | TODO | TODO |
+| Artifact | Prefix | Example |
+|----------|--------|---------|
+| Apex (classes & triggers) | `ABC_` | `ABC_InvoiceService`, `ABC_AccountTrigger` |
+| LWC | `abc` | `abcInvoiceList` |
+| Custom object/field | `ABC_` | `ABC_Invoice__c` |
+
+Precedence for each artifact: **specific row → apply-to-all → none**.
 
 ## Integrations
 
@@ -31,16 +33,10 @@ List the core objects this codebase works with and their relationships.
 
 ## Project layout
 
-- Apex classes: TODO (e.g., `force-app/main/default/classes`)
-- LWC: TODO (e.g., `force-app/main/default/lwc`)
-- Triggers: TODO
-- Tests: TODO (co-located vs separate)
-
-## Deployment
-
-- Tool: TODO (sf CLI / DevOps Center / CI)
-- Required permission sets to deploy/run: TODO
-- Post-deploy steps: TODO
+- Apex classes:  `force-app/main/default/classes`
+- LWC: `force-app/main/default/lwc`
+- Triggers: `force-app/main/default/triggers`
+- Tests: co-located vs separate
 
 ## Conventions specific to this org
 
