@@ -12,6 +12,14 @@ Focused workflow for generating comprehensive Apex test classes. Uses Salesforce
 
 Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`generating-apex-test`, `running-apex-tests`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
 
+## Reference library (read first)
+
+Follow the project reference library for naming and org facts (in your project at `.agents/reference/` for Copilot or `.codex/reference/` for Codex):
+- `reference/coding-standards.md` — test class/method naming and conventions
+- `reference/project-context.md` — objects, relationships, and data needed for realistic test data
+
+Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
+
 ## When to Use
 
 - Generating a test class for an existing Apex class

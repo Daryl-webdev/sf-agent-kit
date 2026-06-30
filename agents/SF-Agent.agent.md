@@ -35,7 +35,13 @@ Route tasks to these dedicated agents:
 | Apex test classes (ONLY when explicitly requested) | `Apex-Tester` | `generating-apex-test`, `running-apex-tests` | `apex-test` |
 | Code review (quality, security, governor limits, standards) | `Code-Reviewer` | `reviewing-code`, `reviewing-lwc-mobile-offline`, `validating-slds` | `reviewing-code` |
 | Non-SF tasks | Handle directly (no delegation) | — | — |
+## Reference library (read first)
 
+Before planning, read the project reference library (in your project at `.agents/reference/` for Copilot or `.codex/reference/` for Codex) and treat it as the source of truth:
+- `reference/project-context.md` — org data model, prefixes, API version, integrations
+- `reference/planning-template.md` — fill this plan structure for every non-trivial task
+
+Specialists load the skills, which cite `reference/coding-standards.md`. Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
 ## Critical Rules
 
 - **PREFER the Salesforce DX MCP** (`Salesforce DX/*` tools) over raw `sf`/`sfdx` CLI commands in the terminal for any org interaction — SOQL queries, org/user lookups, deploys, retrieves, test runs, data operations, org info, etc. Only fall back to the `execute` terminal tool when no equivalent MCP tool exists.
@@ -50,10 +56,12 @@ Route tasks to these dedicated agents:
 
 1. **Analyze**: Read the user's request and identify the nature of each task/subtask
 2. **Classify**: Determine which agent handles each subtask
-3. **Resolve skill**: Spawn the specialist with its global skill; the skill pulls in any matching local sf-skill, local wins on conflict
-4. **Plan**: For multi-part tasks, create a todo list showing the breakdown
-5. **Delegate**: Spawn the appropriate subagent for each subtask
-6. **Report**: Collect results and present a unified summary to the user
+3. **Complexity gate** *(controls cost)*: Decide the path. A **simple** task — single file/method/field, a bug fix, one config item, or a review — **skips steps 4 and 6** and goes straight to delegation. A **complex** feature — multiple objects/components, a new data-model or sharing change, async/integration work, or multi-story scope — runs the full path below.
+4. **Research** *(complex only)*: Before planning, inventory the existing metadata the feature touches — relevant objects/fields, automation (triggers/Flows), and sharing — via the Salesforce DX MCP (`run_soql_query`, `retrieve_metadata`, describes). Capture findings in the plan so the design is grounded in the org's actual state, not assumptions.
+5. **Plan**: Fill `reference/planning-template.md` (grounded in `reference/project-context.md` and any step-4 research); for multi-part tasks, also create a todo list showing the breakdown
+6. **Design check** *(complex only)*: Before writing code, validate the planned approach against platform limits — no callout-per-record, SOQL/DML bulk safety, sync-vs-async choice, sharing/CRUD/FLS, recursion/order-of-execution. If the design would breach a limit, revise the plan first. Keep this a quick in-context check — **do NOT spawn a separate agent.**
+7. **Delegate**: Spawn the appropriate subagent with its global skill (which pulls in any matching local sf-skill; local wins on conflict)
+8. **Report**: Collect results and present a unified summary to the user
 
 ## Multi-Part Task Handling
 

@@ -32,7 +32,10 @@ const home = homedir();
 const targets = {
   copilotAgents: workspace ? resolve(process.cwd(), ".agents/agents") : join(home, ".copilot/agents"),
   copilotSkills: workspace ? resolve(process.cwd(), ".agents/skills") : join(home, ".copilot/skills"),
+  // Reference is ALWAYS project-scoped (project-context.md is per-org); never user/global.
+  copilotReference: resolve(process.cwd(), ".agents/reference"),
   codexSkills: workspace ? resolve(process.cwd(), ".codex/skills") : join(home, ".codex/skills"),
+  codexReference: resolve(process.cwd(), ".codex/reference"),
   codexAgents: workspace ? resolve(process.cwd(), ".codex/AGENTS.md") : join(home, ".codex/AGENTS.md"),
 };
 
@@ -113,10 +116,12 @@ console.log(`Installing my-agent-kit -> ${workspace ? "workspace (.agents/.codex
 if (copilot) {
   await copyTree("copilot/agents", join(root, "agents"), targets.copilotAgents);
   await copyTree("copilot/skills", join(root, "skills"), targets.copilotSkills);
+  await copyTree("copilot/reference", join(root, "reference"), targets.copilotReference);
 }
 
 if (codex) {
   await copyTree("codex/skills", join(root, "skills"), targets.codexSkills);
+  await copyTree("codex/reference", join(root, "reference"), targets.codexReference);
   await installCodexAgent(join(root, "agents", CODEX_AGENT), targets.codexAgents);
 }
 

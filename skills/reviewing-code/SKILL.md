@@ -12,6 +12,14 @@ Structured workflow for reviewing Salesforce and React code. Produces objective,
 
 Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`reviewing-code`, `reviewing-lwc-mobile-offline`, `validating-slds`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
 
+## Reference library (read first)
+
+Review against the project reference library as the source of truth (in your project at `.agents/reference/` for Copilot or `.codex/reference/` for Codex):
+- `reference/coding-standards.md` — the exact naming, structure, error-handling, and sharing rules to check against
+- `reference/project-context.md` — org data model, prefixes, and integrations to validate references against
+
+Flag deviations from these as findings. Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
+
 ## When to Use
 
 - Reviewing an Apex class, trigger, LWC, service, or React component
