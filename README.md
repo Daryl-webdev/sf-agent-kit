@@ -14,9 +14,12 @@ A single source of truth for your custom AI agents and skills. Author them once,
 | --- | --- | --- |
 | Skills (user) | `~/.copilot/skills` | `~/.codex/skills` |
 | Skills (workspace) | `./.agents/skills` | `./.codex/skills` |
+| Reference (project, always) | `./.agents/reference` | `./.codex/reference` |
 | Agents (user) | all agents → `~/.copilot/agents` | SF-Agent (Skill Orch) → `~/.codex/AGENTS.md` |
 
 Skills share the same `SKILL.md` format across both tools, so they are 100% portable. Agents differ per tool, so Copilot receives every agent while Codex receives the single orchestrator merged into its `AGENTS.md`.
+
+**Reference** is a project-specific source of truth (org-specific coding standards, a planning template, and an org-context scaffold) that skills and agents read *before* planning or generating code, so output is consistent prompt-to-prompt. It deliberately carries only what the model can't reliably know (your org's facts and opinionated conventions), not generic Salesforce best practice. It **always installs at project scope** (into the current project, never your user profile) because `project-context.md` is per-org. Skills cite the reference rather than restating it — edit it in one place. Populate `reference/project-context.md` with your org's facts to get the biggest accuracy gain.
 
 ## Repository structure
 
@@ -24,6 +27,7 @@ Skills share the same `SKILL.md` format across both tools, so they are 100% port
 sf-agent-kit/
 ├── agents/            # *.agent.md files (Copilot subagents)
 ├── skills/            # skill folders, each with a SKILL.md
+├── reference/         # project source of truth cited by skills + agents
 ├── bin/install.mjs    # cross-tool installer
 └── package.json
 ```
@@ -119,7 +123,7 @@ npm run install:workspace  # --all --workspace
 
 ## Updating
 
-Edit files in `agents/` or `skills/`, commit and push, then re-run the installer with `--force`:
+Edit files in `agents/`, `skills/`, or `reference/`, commit and push, then re-run the installer with `--force`:
 
 ```bash
 npx github:Daryl-webdev/sf-agent-kit --all --force

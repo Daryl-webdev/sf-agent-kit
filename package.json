@@ -15,7 +15,8 @@
   "files": [
     "bin",
     "agents",
-    "skills"
+    "skills",
+    "reference"
   ],
   "engines": {
     "node": ">=18"
