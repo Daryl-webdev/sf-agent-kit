@@ -61,6 +61,7 @@ flowchart LR
 
     REFP["reference/<br/>.agents/reference + .codex/reference<br/>(always project scope — per-org facts)"]
     SFS["forcedotcom/sf-skills<br/>.agents/skills (project scope)"]
+    MCP["MCP servers<br/>salesforce-dx · context7 · ui-ux-pro<br/>merged into each tool's config"]
 
     INST --> CAG
     INST --> CSK
@@ -68,6 +69,7 @@ flowchart LR
     INST --> XSK
     INST --> REFP
     INST -. "--sf-skills (optional)" .-> SFS
+    INST -. "default on (--no-mcp skips)" .-> MCP
 ```
 
 ### Runtime flow (how a task resolves)
@@ -139,8 +141,11 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 | `--force` | Overwrite existing files |
 | `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`). Bare flag opens the CLI's interactive picker; `--sf-skills=all` installs everything; `--sf-skills=a,b` installs specific skills |
 | `--no-sf-skills` | Skip the sf-skills prompt entirely |
+| `--no-mcp` | Skip MCP server configuration (`salesforce-dx`, `context7`, `ui-ux-pro` are configured by default for the selected tools) |
 
 > sf-skills installs via `npx skills add forcedotcom/sf-skills`. The target agents (`github-copilot`/`codex`) are derived from your flags and sf-skills always install at project (local) scope — `.agents/skills` — never user-level. `--sf-skills=all` or `--sf-skills=a,b` add `-y` to skip all CLI prompts; the bare flag leaves selection interactive.
+
+> MCP config is applied by default, only for the tools you selected. User scope writes VS Code's `mcp.json` + `~/.copilot/mcp-config.json` (Copilot) and `~/.codex/config.toml` (Codex); `--workspace` writes only the local `.vscode/mcp.json` (Codex has no workspace-level MCP config, so it prints a hint instead). Servers that already exist are never modified — only missing ones are added, each stamped with an `added by sf-agent-kit on <date>` comment.
 
 ## Command reference
 
@@ -175,12 +180,18 @@ npx github:Daryl-webdev/sf-agent-kit --all --sf-skills=all  # all sf-skills, no 
 npx github:Daryl-webdev/sf-agent-kit --all --sf-skills=platform-apex-generate,automation-flow-generate
 ```
 
+**MCP servers**
+```bash
+npx github:Daryl-webdev/sf-agent-kit --all            # MCP configured by default (missing servers only)
+npx github:Daryl-webdev/sf-agent-kit --all --no-mcp   # don't touch MCP configs
+```
+
 **Common combinations**
 ```bash
 npx github:Daryl-webdev/sf-agent-kit --all --force --sf-skills=all        # everything, both tools, user
 npx github:Daryl-webdev/sf-agent-kit --copilot --sf-skills=all            # Copilot only + all sf-skills
 npx github:Daryl-webdev/sf-agent-kit --codex --workspace --sf-skills=all  # Codex, this repo + all sf-skills
-npx github:Daryl-webdev/sf-agent-kit --all --workspace --no-sf-skills     # both, repo-scoped, no sf-skills
+npx github:Daryl-webdev/sf-agent-kit --all --workspace --no-sf-skills --no-mcp  # both, repo-scoped, no extras
 ```
 
 **npm scripts (local clone)**
