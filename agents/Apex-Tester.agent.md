@@ -1,7 +1,7 @@
 ---
 name: Apex-Tester
 description: "Apex test class generator. Use ONLY on explicit request for tests/coverage. Never auto-invoked."
-tools: [read, edit, search, execute, "Salesforce DX/*"]
+tools: [read, edit, search, execute, "salesforce-dx/*"]
 user-invocable: false
 ---
 

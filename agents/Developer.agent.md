@@ -1,7 +1,7 @@
 ---
 name: Developer
 description: "Salesforce + React code developer: Apex, LWC, triggers, services, Flows, React components. No test classes."
-tools: [read, edit, search, execute, "Salesforce DX/*", "context7/*"]
+tools: [read, edit, search, execute, "salesforce-dx/*", "context7/*"]
 user-invocable: false
 ---
 

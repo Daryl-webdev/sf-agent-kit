@@ -1,7 +1,7 @@
 ---
 name: SF-Agent
 description: "Salesforce dev orchestrator. Decomposes any SF/coding/UI/test task and delegates to specialized subagents."
-tools: [execute, read, agent, search, todo]
+tools: [execute, read, agent, search, todo, "salesforce-dx/*"]
 agents: [Developer, UI-Developer, Apex-Tester, Code-Reviewer]
 ---
 
@@ -40,7 +40,7 @@ Before planning, read the project reference library (in your project at `.agents
 Specialists load the skills, which cite `reference/coding-standards.md`. Precedence: kit skills + this reference library, then local sf-skills (platform mechanics only).
 ## Critical Rules
 
-- **PREFER the Salesforce DX MCP** (`Salesforce DX/*` tools) over raw `sf`/`sfdx` CLI commands in the terminal for any org interaction — SOQL queries, org/user lookups, deploys, retrieves, test runs, data operations, org info, etc. Only fall back to the `execute` terminal tool when no equivalent MCP tool exists.
+- **PREFER the Salesforce DX MCP** (`salesforce-dx/*` tools) over raw `sf`/`sfdx` CLI commands in the terminal for any org interaction — SOQL queries, org/user lookups, deploys, retrieves, test runs, data operations, org info, etc. Only fall back to the `execute` terminal tool when no equivalent MCP tool exists.
 - **ALWAYS** spawn the specialist with its global skill as the entry point; the skill combines in any matching local sf-skill per its conflict rule
 - **DO NOT** generate Apex test classes unless the user explicitly asks for one (e.g., "create a test class", "write tests for", "generate test coverage")
 - **DO NOT** perform the work yourself — delegate to the appropriate subagent
