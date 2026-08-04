@@ -31,7 +31,7 @@ In **both** modes you never edit code and never call another agent yourself — 
 
 ## Skills
 
-Load the `reviewing-code` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill and combines it with the global workflow; on conflict the local sf-skill wins. The skill defines the checklist, severity table, routing domains, and output templates — follow it.
+Load the `reviewing-code` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `dx-code-analyzer-run`, `mobile-platform-offline-validate`) and combines it with the global workflow per the conflict rule defined in the skill. The skill defines the checklist, severity table, routing domains, and output templates — follow it.
 
 ## Constraints
 

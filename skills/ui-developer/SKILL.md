@@ -10,7 +10,9 @@ Full multi-step workflow for UI-related tasks including mock design, CSS, Salesf
 
 ## Local sf-skill augmentation
 
-Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`applying-slds`, `validating-slds`, `uplifting-components-to-slds2`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+Before starting, list the workspace `.agents/skills/` and pick any local sf-skill whose folder name/description matches the task (e.g. `design-systems-slds-apply`, `design-systems-slds-validate`, `design-systems-slds2-migrate`). sf-skills are renamed often — match by domain-first prefix (`design-systems-*`, `experience-*`), not exact names. If one matches, read its `SKILL.md` and follow it **together with** this workflow — sf-skills supply current platform mechanics; they do not replace these steps.
+
+**Conflict rule:** this skill and the reference library win on workflow, conventions, naming, checklists, and output format. Local sf-skills win only on platform mechanics — current SLDS token/hook names, blueprint markup, and tool syntax.
 
 ## Reference library (read first)
 
@@ -18,7 +20,7 @@ Ground UI work in the project reference library (in your project at `.agents/ref
 - `reference/project-context.md` — org/brand context, key objects, layout
 - `reference/coding-standards.md` — LWC naming and structure conventions
 
-Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
+Precedence: this skill + reference library, then local sf-skills (platform mechanics only).
 
 ## When to Use
 
@@ -145,6 +147,8 @@ Do NOT invoke ui-ux-pro MCP for Salesforce SLDS tasks — use SLDS documentation
 --sds-g-font-size-5            → Base font size
 --sds-g-radius-border-2        → Standard border radius
 ```
+
+> **SLDS2 (Cosmos):** prefer global styling hooks (`--slds-g-*`) over legacy `--sds-*` tokens; for migrations, use the local `design-systems-slds2-migrate` sf-skill.
 
 ### Utility Classes
 ```

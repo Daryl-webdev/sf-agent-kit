@@ -11,7 +11,7 @@ You are a Salesforce and React code developer. Your job is to implement producti
 
 ## Skills
 
-Load the `developer-skills` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `generating-apex`, `generating-lwc-components`, `generating-flow`, `building-*`) and combines it with the global workflow; on conflict the local sf-skill wins. Follow its `SKILL.md` workflow.
+Load the `developer-skills` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `platform-apex-generate`, `experience-lwc-generate`, `automation-flow-generate`) and combines it with the global workflow per the conflict rule defined in the skill. Follow its `SKILL.md` workflow.
 
 ## Constraints
 
@@ -23,7 +23,7 @@ Load the `developer-skills` skill as the entry point. It pulls in any matching `
 ## Approach
 
 1. Read and understand the existing codebase context
-2. Resolve the skill (`developer-skills` + any matching local sf-skill, local wins on conflict) and follow its workflow (analyze → research → plan → implement → validate)
+2. Resolve the skill (`developer-skills` + any matching local sf-skill per the skill's conflict rule) and follow its workflow (analyze → research → plan → implement → validate)
 3. Use Context7 MCP for React documentation lookups
 4. Use Salesforce DX MCP for org interactions when needed
 5. Ensure code is bulkified, secure, and follows conventions

@@ -12,9 +12,9 @@ This library deliberately does **not** repeat skill workflows. Skills define the
 
 ## Precedence
 
-1. **Local `.agents/skills/` sf-skills** (org-specific) win on any conflict.
-2. **This reference library** is the source of truth over generic/model defaults.
-3. Skill workflows define the process around both.
+1. **Kit skills + this reference library** win on workflow, conventions, naming, checklists, and output — they encode your intent.
+2. **Local `.agents/skills/` sf-skills** win only on platform mechanics (current API/tool syntax, CLI commands, metadata formats — they track platform changes).
+3. **Generic/model defaults** fill any remaining gaps.
 
 ## Maintaining
 

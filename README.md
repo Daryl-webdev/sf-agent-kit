@@ -32,6 +32,80 @@ sf-agent-kit/
 └── package.json
 ```
 
+## How it flows
+
+### Install flow
+
+```mermaid
+flowchart LR
+    subgraph KIT["sf-agent-kit (this repo)"]
+        AG["agents/ — 6 agent files"]
+        SK["skills/ — 4 skills"]
+        RF["reference/ — org source of truth"]
+    end
+
+    INST(["bin/install.mjs"])
+    AG --> INST
+    SK --> INST
+    RF --> INST
+
+    subgraph COP["GitHub Copilot"]
+        CAG["all agents<br/>~/.copilot/agents or .agents/agents"]
+        CSK["skills<br/>~/.copilot/skills or .agents/skills"]
+    end
+
+    subgraph CDX["OpenAI Codex"]
+        XAG["SF-Agent (Skill Orch) only<br/>merged into AGENTS.md"]
+        XSK["skills<br/>~/.codex/skills or .codex/skills"]
+    end
+
+    REFP["reference/<br/>.agents/reference + .codex/reference<br/>(always project scope — per-org facts)"]
+    SFS["forcedotcom/sf-skills<br/>.agents/skills (project scope)"]
+
+    INST --> CAG
+    INST --> CSK
+    INST --> XAG
+    INST --> XSK
+    INST --> REFP
+    INST -. "--sf-skills (optional)" .-> SFS
+```
+
+### Runtime flow (how a task resolves)
+
+```mermaid
+flowchart TB
+    U["User task"] --> ORCH["Orchestrator<br/>SF-Agent (subagents) or SF-Agent Skill Orch (skills only)"]
+    ORCH --> GATE{"Complexity gate"}
+    GATE -- "simple: single file, fix,<br/>one config, review" --> ROUTE{"Route by task type"}
+    GATE -- "complex: multi-object, data model,<br/>async, integration" --> RPD["Research (DX MCP inventory)<br/>→ Plan (planning-template.md)<br/>→ Design check (platform limits)"]
+    RPD --> ROUTE
+
+    ROUTE -- code --> DEV["Developer<br/>developer-skills"]
+    ROUTE -- UI --> UID["UI-Developer<br/>ui-developer"]
+    ROUTE -- "tests (explicit only)" --> APT["Apex-Tester<br/>apex-test"]
+    ROUTE -- review --> CRV["Code-Reviewer<br/>reviewing-code"]
+
+    DEV --> AUG
+    UID --> AUG
+    APT --> AUG
+    CRV --> AUG
+
+    AUG{"Matching local sf-skill<br/>in .agents/skills/?"} -- yes --> MECH["Augment with platform mechanics<br/>(platform-*, experience-*, automation-*,<br/>design-systems-*, dx-*)"]
+    AUG -- no --> REF
+    MECH --> REF["Ground in reference/<br/>project-context · coding-standards · planning-template"]
+    REF --> IMPL["Implement + Validate"]
+    IMPL --> LOOP["Review–revise loop<br/>(gate: Blocker/Critical/Major, max 2 iterations)"]
+    LOOP --> DONE["Report to user"]
+```
+
+### Conflict precedence (who wins when guidance disagrees)
+
+1. **Kit skill + `reference/`** — your intent: workflow, conventions, naming, checklists, output format
+2. **Local sf-skills** — platform mechanics only: current API/tool syntax, CLI commands, metadata formats (they track platform changes)
+3. **Generic model knowledge** — fills remaining gaps
+
+> sf-skills are renamed upstream often; skills match them by domain-first prefix (`platform-*`, `experience-*`, `automation-*`, `design-systems-*`, `dx-*`), never by hardcoded name.
+
 ## Quick start
 
 Install everything to all supported tools (recommended):

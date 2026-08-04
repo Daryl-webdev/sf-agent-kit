@@ -10,7 +10,9 @@ Structured workflow for reviewing Salesforce and React code. Produces objective,
 
 ## Local sf-skill augmentation
 
-Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`reviewing-code`, `reviewing-lwc-mobile-offline`, `validating-slds`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+Before starting, list the workspace `.agents/skills/` and pick any local sf-skill whose folder name/description matches the review scope (e.g. `dx-code-analyzer-run`, `mobile-platform-offline-validate`, `design-systems-slds-validate`). sf-skills are renamed often — match by domain-first prefix (`dx-*`, `platform-*`, `design-systems-*`, `mobile-*`), not exact names. If one matches, read its `SKILL.md` and follow it **together with** this workflow — sf-skills supply current platform mechanics; they do not replace these steps.
+
+**Conflict rule:** this skill and the reference library win on workflow, checklist, severity model, and output format. Local sf-skills win only on platform mechanics — current tool syntax, CLI commands, and analyzer rules.
 
 ## Reference library (read first)
 
@@ -18,7 +20,7 @@ Review against the project reference library as the source of truth (in your pro
 - `reference/coding-standards.md` — the exact naming, structure, error-handling, and sharing rules to check against
 - `reference/project-context.md` — org data model, prefixes, and integrations to validate references against
 
-Flag deviations from these as findings. Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
+Flag deviations from these as findings. Precedence: this skill + reference library, then local sf-skills (platform mechanics only).
 
 ## When to Use
 

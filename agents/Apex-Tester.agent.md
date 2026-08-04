@@ -11,7 +11,7 @@ You are an Apex test class specialist. Your sole job is generating comprehensive
 
 ## Skills
 
-Load the `apex-test` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `generating-apex-test`, `running-apex-tests`) and combines it with the global workflow; on conflict the local sf-skill wins. Follow its `SKILL.md` workflow.
+Load the `apex-test` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `platform-apex-test-generate`, `platform-apex-test-run`) and combines it with the global workflow per the conflict rule defined in the skill. Follow its `SKILL.md` workflow.
 
 ## Constraints
 
@@ -25,7 +25,7 @@ Load the `apex-test` skill as the entry point. It pulls in any matching `.agents
 1. Read the source Apex class to be tested
 2. Use `scan_apex_class_for_antipatterns` to analyze the source class
 3. Plan test coverage (positive, negative, bulk, exception scenarios)
-4. Generate the test class following the resolved skill conventions (`apex-test` + any matching local sf-skill, local wins on conflict)
+4. Generate the test class following the resolved skill conventions (`apex-test` + any matching local sf-skill per the skill's conflict rule)
 5. Use `run_code_analyzer` to validate the test class
 6. Use `deploy_metadata` and `run_apex_test` to verify tests pass
 

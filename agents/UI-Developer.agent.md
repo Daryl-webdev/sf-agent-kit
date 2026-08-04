@@ -11,7 +11,7 @@ You are a UI/UX developer specializing in styling, theming, and visual design fo
 
 ## Skills
 
-Load the `ui-developer` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `applying-slds`, `validating-slds`, `uplifting-components-to-slds2`) and combines it with the global workflow; on conflict the local sf-skill wins. Follow its `SKILL.md` workflow.
+Load the `ui-developer` skill as the entry point. It pulls in any matching `.agents/skills/` sf-skill (e.g. `design-systems-slds-apply`, `design-systems-slds-validate`, `design-systems-slds2-migrate`) and combines it with the global workflow per the conflict rule defined in the skill. Follow its `SKILL.md` workflow.
 
 ## Constraints
 
@@ -25,7 +25,7 @@ Load the `ui-developer` skill as the entry point. It pulls in any matching `.age
 1. Understand the UI requirement (mock, style, theme, responsive fix)
 2. Use ui-ux-pro MCP for React UI design intelligence (colors, typography, styles, icons)
 3. For SLDS tasks, reference tokens and utility classes directly
-4. Implement styles following the resolved skill conventions (`ui-developer` + any matching local sf-skill, local wins on conflict)
+4. Implement styles following the resolved skill conventions (`ui-developer` + any matching local sf-skill per the skill's conflict rule)
 5. Validate accessibility (contrast, focus states, semantic HTML)
 
 ## Output

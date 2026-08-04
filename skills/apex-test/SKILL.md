@@ -10,7 +10,9 @@ Focused workflow for generating comprehensive Apex test classes. Uses Salesforce
 
 ## Local sf-skill augmentation
 
-Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`generating-apex-test`, `running-apex-tests`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+Before starting, list the workspace `.agents/skills/` and pick any local sf-skill whose folder name/description matches the task (e.g. `platform-apex-test-generate`, `platform-apex-test-run`). sf-skills are renamed often — match by domain-first prefix (`platform-*`, `dx-*`), not exact names. If one matches, read its `SKILL.md` and follow it **together with** this workflow — sf-skills supply current platform mechanics; they do not replace these steps.
+
+**Conflict rule:** this skill and the reference library win on workflow, conventions, naming, checklists, and output format. Local sf-skills win only on platform mechanics — current API/tool syntax, CLI commands, and metadata formats.
 
 ## Reference library (read first)
 
@@ -18,7 +20,7 @@ Follow the project reference library for naming and org facts (in your project a
 - `reference/coding-standards.md` — test class/method naming and conventions
 - `reference/project-context.md` — objects, relationships, and data needed for realistic test data
 
-Precedence: local `.agents/skills/` sf-skills win first, then this reference library.
+Precedence: this skill + reference library, then local sf-skills (platform mechanics only).
 
 ## When to Use
 
@@ -88,7 +90,7 @@ private class [ClassName]Test {
         // method call here
         Test.stopTest();
         // Then: assert results
-        System.assertEquals(expected, actual, 'Descriptive failure message');
+        Assert.areEqual(expected, actual, 'Descriptive failure message');
     }
 
     @IsTest
@@ -110,7 +112,8 @@ private class [ClassName]Test {
 - **One assertion focus per test**: Each test method validates one behavior
 - **`@TestSetup`**: Create shared test data once, not in every method
 - **`Test.startTest()` / `Test.stopTest()`**: Always wrap the method under test to reset governor limits
-- **Descriptive assertions**: `System.assertEquals(expected, actual, 'Should return 3 invoices for active provider')`
+- **Descriptive assertions**: `Assert.areEqual(expected, actual, 'Should return 3 invoices for active provider')`
+- **Modern `Assert` class**: use `Assert.areEqual` / `Assert.isTrue` / `Assert.isNotNull` / `Assert.fail` — not legacy `System.assert*`
 - **No hardcoded IDs**: Use `@TestSetup` data or dynamically created records
 - **No `SeeAllData=true`**: Never use unless testing against org data (extremely rare)
 
@@ -124,7 +127,7 @@ static void testCallout_success() {
     Test.startTest();
     String result = MyService.makeCallout();
     Test.stopTest();
-    System.assertEquals('ok', result);
+    Assert.areEqual('ok', result, 'Callout should return ok status');
 }
 ```
 
@@ -137,7 +140,7 @@ static void testTrigger_beforeInsert() {
     insert acc;
     Test.stopTest();
     Account result = [SELECT Id, CustomField__c FROM Account WHERE Id = :acc.Id];
-    System.assertNotEquals(null, result.CustomField__c);
+    Assert.isNotNull(result.CustomField__c, 'Trigger should populate CustomField__c');
 }
 ```
 
@@ -172,7 +175,7 @@ static void testSchedulable_executes() {
     String jobId = System.schedule('Test Job', '0 0 0 1 1 ?', new MySchedulable());
     Test.stopTest();
     CronTrigger ct = [SELECT Id, State FROM CronTrigger WHERE Id = :jobId];
-    System.assertNotEquals(null, ct);
+    Assert.isNotNull(ct, 'Job should be scheduled');
 }
 ```
 
@@ -184,7 +187,7 @@ static void testGetRecords_returnsData() {
     Test.startTest();
     List<Account> results = MyController.getAccounts();
     Test.stopTest();
-    System.assert(!results.isEmpty(), 'Should return accounts');
+    Assert.isFalse(results.isEmpty(), 'Should return accounts');
 }
 
 @IsTest
@@ -192,9 +195,9 @@ static void testGetRecords_throwsOnInvalidInput() {
     Test.startTest();
     try {
         MyController.getAccounts(null);
-        System.assert(false, 'Should have thrown AuraHandledException');
+        Assert.fail('Should have thrown AuraHandledException');
     } catch (AuraHandledException e) {
-        System.assert(e.getMessage().contains('Invalid'), 'Error message should indicate invalid input');
+        Assert.isTrue(e.getMessage().contains('Invalid'), 'Error message should indicate invalid input');
     }
     Test.stopTest();
 }

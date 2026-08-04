@@ -10,7 +10,9 @@ Full multi-step workflow for Salesforce and React code development. Uses Context
 
 ## Local sf-skill augmentation
 
-Before starting, check the workspace `.agents/skills/` for a matching local sf-skill (`generating-apex`, `generating-lwc-components`, `generating-flow`, `building-*`, etc.). If one exists, read its `SKILL.md` and follow it **together with** this workflow — local sf-skills add org-specific conventions, they do not replace these steps. **On any conflict, the local sf-skill wins.**
+Before starting, list the workspace `.agents/skills/` and pick any local sf-skill whose folder name/description matches the task (e.g. `platform-apex-generate`, `experience-lwc-generate`, `automation-flow-generate`). sf-skills are renamed often — match by domain-first prefix (`platform-*`, `experience-*`, `automation-*`), not exact names. If one matches, read its `SKILL.md` and follow it **together with** this workflow — sf-skills supply current platform mechanics; they do not replace these steps.
+
+**Conflict rule:** this skill and the reference library win on workflow, conventions, naming, checklists, and output format. Local sf-skills win only on platform mechanics — current API/tool syntax, CLI commands, and metadata formats (they track platform changes).
 
 ## Reference library (read first)
 
@@ -19,13 +21,13 @@ Before planning or generating code, read the project reference library and follo
 - `reference/coding-standards.md` — org-specific naming, architecture, conventions
 - `reference/planning-template.md` — fill this plan structure before writing code
 
-Precedence: local `.agents/skills/` sf-skills win first, then this reference library, then generic guidance.
+Precedence: this skill + reference library, then local sf-skills (platform mechanics only), then generic guidance.
 
 ## When to Use
 
 - Writing or modifying Apex classes, triggers, or test classes
 - Creating or updating Lightning Web Components (LWC)
-- Building or editing Flows
+- Building or editing Flows (when the local `automation-flow-generate` sf-skill is installed, its build steps lead — this skill has no Flow-specific workflow)
 - Implementing integrations or API callouts
 - Building React components or hooks
 - Any Salesforce or React code-related development task
@@ -42,12 +44,11 @@ Precedence: local `.agents/skills/` sf-skills win first, then this reference lib
 2. Clarify inputs, outputs, and acceptance criteria
 3. Identify related existing code in the workspace
 
-### Step 2: Research via Context7 MCP
+### Step 2: Research
 
-Before writing code, use Context7 MCP to look up:
-- Current Salesforce API documentation for relevant features
-- Best practices and governor limits for the approach
-- Syntax and patterns for the specific metadata type
+Before writing code:
+- **Salesforce (Apex/LWC/Flow)**: use the matching local sf-skill and the Salesforce DX MCP; if the `platform-docs-get` sf-skill is installed, use it for current Salesforce docs. Do NOT use Context7.
+- **React**: use Context7 MCP for library documentation (hooks, component patterns, APIs).
 
 ### Step 3: Plan the Implementation
 
@@ -79,7 +80,7 @@ Follow these conventions:
 - [ ] Bulkified for 200+ records
 - [ ] Proper error handling with try/catch
 - [ ] `with sharing` keyword used unless explicitly needed otherwise
-- [ ] CRUD/FLS enforced (Security.stripInaccessible or WITH SECURITY_ENFORCED)
+- [ ] CRUD/FLS enforced (`WITH USER_MODE` preferred; `Security.stripInaccessible` for DML filtering)
 - [ ] No hardcoded record IDs or org-specific values
 - [ ] Tests delegated to `apex-test` skill (do not author tests here)
 - [ ] All metadata XML files included (`-meta.xml`)
