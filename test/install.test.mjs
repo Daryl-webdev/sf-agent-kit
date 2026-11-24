@@ -51,7 +51,12 @@ function assertSkills(root, includeCodex) {
   assert.equal(existsSync(skillDir), includeCodex);
   if (includeCodex) assert.deepEqual(readFileSync(join(skillDir, "references", "routing.md")), sourcePolicy);
   const commitDir = join(skills, "commit");
-  assert.match(readFileSync(join(commitDir, "SKILL.md"), "utf8"), /^disable-model-invocation: true\r?$/m);
+  const commitSkill = readFileSync(join(commitDir, "SKILL.md"), "utf8");
+  assert.match(commitSkill, /^disable-model-invocation: true\r?$/m);
+  assert.doesNotMatch(commitSkill, /\]\([^)]*\.md\)/);
+  assert.match(commitSkill, /CWDT-3094_c001/);
+  assert.match(commitSkill, /solution-design\.md/);
+  assert.match(commitSkill, /package\.md/);
   assert.match(readFileSync(join(commitDir, "agents", "openai.yaml"), "utf8"), /^policy:\r?\n  allow_implicit_invocation: false\r?$/m);
   assert.ok(!existsSync(join(skills, "local-commit")));
 }
@@ -61,6 +66,7 @@ test("Codex-only personal install creates instructions, preserves them by defaul
   const instructions = join(home, ".codex", "AGENTS.md");
   run("--codex");
   const generated = readFileSync(instructions, "utf8");
+  assert.doesNotMatch(generated, /\$commit/);
   assert.match(generated, /use the `sf-orchestrator` skill and follow its routing policy/);
   write(instructions, "# User instructions\n");
   run("--codex");

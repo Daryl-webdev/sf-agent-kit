@@ -44,7 +44,7 @@ Optional org-specific Salesforce skills provide current platform mechanics only;
 
 ## Local story history
 
-Recording is opt-in. **SF-Agent** and **`$sf-orchestrator`** do not ask for a ticket or write history during ordinary edits. When you are ready to record changes you or the agent already made, select **`/commit`** in Copilot or type **`$commit`** in Codex.
+Recording is opt-in. After editing, select **`/commit`** in Copilot or **`$commit`** in Codex. The skill contains the whole workflow; there is no agent to select or routing step to run first. Ordinary edits do not trigger ticket questions or story writes.
 
 For example: `$commit CWDT-3094: LWC myTodoApp and Apex myTodoAppCtrl`. The skill asks for a ticket or component scope only if missing. With ticket `CWDT-3094`, the first entry goes under `.agents/project/stories/CWDT-3094/CWDT-3094_c001/`. Each affected component gets one Markdown file, such as `LWC - myTodoApp.md`, and the ticket's `solution-design.md` and `package.md` are updated. The workspace installer creates the empty story root and never replaces existing stories, even with `--force`.
 
@@ -174,7 +174,7 @@ Run `npm test` for offline installer and packaging regression tests. After insta
 | Write a Jest test for this LWC | Developer / developer-skills, not Apex authoring |
 | Fix this one CSS rule | No ticket question or story writes; one owner and no full template or automatic second review |
 | Fix this LWC for ticket CWDT-3094 | Apply the fix without recording history; supplying a ticket does not invoke `commit` |
-| `$commit CWDT-3094: LWC myTodoApp` | Do not change source; reuse the last matching After or ask for a description and record only current source |
+| `/commit CWDT-3094: LWC myTodoApp` (or `$commit` in Codex) | Record history using only the skill, affected source, and relevant ticket files. Do not change source. |
 | Implement a data-model change | One shared plan; only needed references and locally unavailable live facts |
 
 For efficiency comparisons, keep model and tools fixed, separate cold and warm sessions, and record tokens (if available), elapsed time, handoffs, and MCP calls. Offline packaging tests do not measure model routing or speed.

@@ -53,7 +53,7 @@ const targets = {
 };
 
 async function installCodexInstructions(file) {
-  const content = `# Codex: Salesforce and React\n\nWhen using Codex for Salesforce or React tasks, use the \`${CODEX_SKILL}\` skill and follow its routing policy. For unrelated tasks, work normally.\n`;
+  const content = `# Codex: Salesforce and React\n\nFor Salesforce or React tasks with no skill already selected, use the \`${CODEX_SKILL}\` skill and follow its routing policy. For unrelated tasks, work normally.\n`;
   await mkdir(dirname(file), { recursive: true });
   try {
     await writeFile(file, content, { encoding: "utf8", flag: force ? "w" : "wx" });
