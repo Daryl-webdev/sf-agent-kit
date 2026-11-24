@@ -13,7 +13,7 @@ One Salesforce/React workflow, two host-specific entry points:
 | Host | Start here | Execution |
 | --- | --- | --- |
 | GitHub Copilot | Select **SF-Agent** in the custom-agent picker | Delegates implementation, UI, Apex test authoring, and review to specialists. Plans and existing-test runs stay with the orchestrator. |
-| OpenAI Codex | Type **`$sf-orchestrator`** in a task prompt | Applies the selected domain skill inline, without spawning subagents. The installer does not write `AGENTS.md`. |
+| OpenAI Codex | Ask for Salesforce/React work, or explicitly type **`$sf-orchestrator`** | The kit's `AGENTS.md` points to the skill, which applies the selected domain skill inline without spawning subagents. |
 
 Both use the same [routing policy](skills/sf-orchestrator/references/routing.md). It classifies intent before domain: plan-only and review-only requests never edit code, run-only requests don't author tests or deploy, and test edits and deployment need explicit authorization. Tools and references are local-first. A simple task gets one owner and no full plan or automatic second review. Complex work gets one plan and is ordered by actual dependencies.
 
@@ -34,6 +34,7 @@ bin/install.mjs                 # Installer for both hosts
 | Copilot agents | `.github/agents/` | `~/.copilot/agents/` |
 | Shared skills | `.agents/skills/` | `~/.agents/skills/` |
 | Copilot routing policy | `.agents/reference/sf-agent-routing.md` | `~/.copilot/reference/sf-agent-routing.md` |
+| Codex instructions | `AGENTS.md` at the project root | `~/.codex/AGENTS.md`, or `AGENTS.md` under `$CODEX_HOME` if set |
 | Project references | `.agents/reference/` | Still project-scoped: `.agents/reference/` |
 
 The Codex skill is included by `--codex` and `--all`. Its copy of the policy ships inside its skill folder. A Copilot-only install does not ship the Codex entry point. If both hosts share a skills root, the Codex skill may also be visible in Copilot; select **SF-Agent** when you want delegation.
@@ -58,7 +59,7 @@ npx github:Daryl-webdev/sf-agent-kit --codex
 # Scope to the current repository instead of the user profile
 npx github:Daryl-webdev/sf-agent-kit --all --workspace
 
-# Refresh kit agents, skills, and routing policy
+# Refresh kit files and replace Codex AGENTS.md
 npx github:Daryl-webdev/sf-agent-kit --all --force
 ```
 
@@ -70,7 +71,7 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 | `--copilot` | Install to GitHub Copilot only |
 | `--codex` | Install to OpenAI Codex only |
 | `--workspace` | Install into the current repo instead of the user home directory |
-| `--force` | Refresh kit agents, skills, and routing policy; never overwrite `AGENTS.md` or project reference files |
+| `--force` | Refresh kit agents, skills, and routing policy. If Codex is selected, replace the entire `AGENTS.md` at the selected scope. Existing project reference files are still preserved. |
 | `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`). Bare flag opens the CLI's interactive picker; `--sf-skills=all` installs everything; `--sf-skills=a,b` installs specific skills |
 | `--no-sf-skills` | Skip the sf-skills prompt entirely |
 | `--no-mcp` | Skip MCP server configuration (`salesforce-dx`, `context7`, `ui-ux-pro` are configured by default for the selected tools) |
@@ -146,7 +147,8 @@ To refresh an existing install, use the same scope and flags with `--force`. Fro
 node .\bin\install.mjs --all --force --no-mcp --no-sf-skills
 ```
 
-- Back up any personal edits to the installed agents or skills before refreshing them. The installer never modifies `AGENTS.md`. If a previous install added a `# SF-Agent (Skill Orch)` body to `~/.codex/AGENTS.md` or `.codex/AGENTS.md`, inspect the file and remove only the old kit content if you want on-demand routing. Keep your own instructions.
+- Back up any custom instructions you want to keep before using `--force`: when Codex is selected, the installer replaces the entire target `AGENTS.md` with a short directive to use `sf-orchestrator`. Without `--force`, an existing file is left unchanged. A Copilot-only install never writes this file.
+- To replace an old user-level `.codex/AGENTS.md`, use `--force` without `--workspace`. Workspace installs write the project-root `AGENTS.md`; they do not modify the legacy `.codex/AGENTS.md` inside the project.
 - Inspect old kit copies under `.agents/agents/` (workspace Copilot), `~/.copilot/skills/` (personal Copilot), and `.codex/skills/` or `~/.codex/skills/` (Codex). Archive old kit copies that collide with the new install, including an old `SF-Agent (Skill Orch).agent.md` in the Copilot agent directory. Do not delete unrelated files; legacy locations are untouched by design.
 - Customize `.agents/reference/project-context.md` and `coding-standards.md` per project. The installer preserves existing files there and seeds a missing file from `.codex/reference/` if available. If both copies already exist, the `.agents/reference/` copy wins; merge any legacy customizations you still need.
 

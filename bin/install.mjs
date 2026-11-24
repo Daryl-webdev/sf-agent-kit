@@ -47,7 +47,23 @@ const targets = {
   projectReference: resolve(projectRoot, ".agents/reference"),
   legacyReference: resolve(projectRoot, ".codex/reference"),
   copilotPolicy: workspace ? resolve(projectRoot, ".agents/reference") : join(home, ".copilot/reference"),
+  codexInstructions: workspace
+    ? join(projectRoot, "AGENTS.md")
+    : resolve(process.env.CODEX_HOME || join(home, ".codex"), "AGENTS.md"),
 };
+
+async function installCodexInstructions(file) {
+  const content = `# Codex: Salesforce and React\n\nWhen using Codex for Salesforce or React tasks, use the \`${CODEX_SKILL}\` skill and follow its routing policy. For unrelated tasks, work normally.\n`;
+  await mkdir(dirname(file), { recursive: true });
+  try {
+    await writeFile(file, content, { encoding: "utf8", flag: force ? "w" : "wx" });
+  } catch (error) {
+    if (error.code !== "EEXIST" || force) throw error;
+    console.log(`skip   ${file} (exists; use --force to replace)`);
+    return;
+  }
+  console.log(`install ${file}`);
+}
 
 async function installEntry(label, src, dest, overwrite = force) {
   if (existsSync(dest) && !overwrite) {
@@ -210,6 +226,7 @@ if (copilot) {
 }
 
 await copyTree("skills", join(root, "skills"), targets.skills, (name) => codex || name !== CODEX_SKILL);
+if (codex) await installCodexInstructions(targets.codexInstructions);
 await seedProjectReferences();
 
 await maybeConfigureMcp();

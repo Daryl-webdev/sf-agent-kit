@@ -18,16 +18,18 @@ function fixture(t) {
   const home = join(root, "home");
   mkdirSync(cwd);
   mkdirSync(home);
+  const env = { ...process.env, HOME: home, USERPROFILE: home };
+  delete env.CODEX_HOME;
   function run(...args) {
     const result = spawnSync(process.execPath, [installer, "--no-mcp", "--no-sf-skills", ...args], {
       cwd,
-      env: { ...process.env, HOME: home, USERPROFILE: home },
+      env,
       encoding: "utf8",
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr || result.stdout);
   }
-  return { cwd, home, run };
+  return { cwd, home, env, run };
 }
 
 function write(file, contents) {
@@ -49,24 +51,41 @@ function assertSkills(root, includeCodex) {
   if (includeCodex) assert.deepEqual(readFileSync(join(skillDir, "references", "routing.md")), sourcePolicy);
 }
 
-test("Codex-only personal install uses the skill root and preserves standing instructions", (t) => {
+test("Codex-only personal install creates instructions, preserves them by default, and replaces them with --force", (t) => {
   const { cwd, home, run } = fixture(t);
   const instructions = join(home, ".codex", "AGENTS.md");
+  run("--codex");
+  const generated = readFileSync(instructions, "utf8");
+  assert.match(generated, /use the `sf-orchestrator` skill and follow its routing policy/);
   write(instructions, "# User instructions\n");
+  run("--codex");
+  assert.equal(readFileSync(instructions, "utf8"), "# User instructions\n");
   run("--codex", "--force");
   assertSkills(home, true);
-  assert.equal(readFileSync(instructions, "utf8"), "# User instructions\n");
+  assert.equal(readFileSync(instructions, "utf8"), generated);
   assert.ok(!existsSync(join(home, ".copilot", "agents")));
   assert.ok(existsSync(join(cwd, ".agents", "reference", "project-context.md")));
 });
 
-test("Copilot-only personal install adds agents and policy, not the Codex skill", (t) => {
+test("Codex personal instructions honor CODEX_HOME", (t) => {
+  const { home, env, run } = fixture(t);
+  env.CODEX_HOME = join(home, "custom-codex");
+  const instructions = join(env.CODEX_HOME, "AGENTS.md");
+  write(instructions, "# Custom profile instructions\n");
+  run("--codex", "--force");
+  assert.match(readFileSync(instructions, "utf8"), /^# Codex: Salesforce and React\n/);
+  assert.ok(!existsSync(join(home, ".codex", "AGENTS.md")));
+});
+
+test("Copilot-only personal install leaves Codex instructions and skills alone", (t) => {
   const { home, run } = fixture(t);
-  run("--copilot");
+  const instructions = join(home, ".codex", "AGENTS.md");
+  write(instructions, "# Keep Codex instructions\n");
+  run("--copilot", "--force");
   assertSkills(home, false);
   assert.ok(existsSync(join(home, ".copilot", "agents", "SF-Agent.agent.md")));
   assert.deepEqual(readFileSync(join(home, ".copilot", "reference", routingFile)), sourcePolicy);
-  assert.ok(!existsSync(join(home, ".codex", "AGENTS.md")));
+  assert.equal(readFileSync(instructions, "utf8"), "# Keep Codex instructions\n");
 });
 
 test("combined workspace installs refresh kit files while preserving or migrating project references", (t) => {
@@ -74,11 +93,16 @@ test("combined workspace installs refresh kit files while preserving or migratin
   const reference = join(cwd, ".agents", "reference");
   const policy = join(reference, routingFile);
   const agents = join(cwd, ".github", "agents");
-  const instructions = join(cwd, ".codex", "AGENTS.md");
+  const instructions = join(cwd, "AGENTS.md");
+  const legacy = join(cwd, ".codex", "AGENTS.md");
+  const personal = join(home, ".codex", "AGENTS.md");
   write(instructions, "# Existing workspace instructions\n");
+  write(legacy, "# Old kit instructions\n");
+  write(personal, "# Personal instructions\n");
   write(join(cwd, ".codex", "reference", "project-context.md"), "Legacy org facts\n");
   write(join(reference, "coding-standards.md"), "Current project conventions\n");
   run("--all", "--workspace");
+  assert.equal(readFileSync(instructions, "utf8"), "# Existing workspace instructions\n");
   assertSkills(cwd, true);
   assert.ok(existsSync(join(agents, "SF-Agent.agent.md")));
   assert.ok(!existsSync(join(agents, "SF-Agent (Skill Orch).agent.md")));
@@ -89,6 +113,9 @@ test("combined workspace installs refresh kit files while preserving or migratin
   assert.deepEqual(readFileSync(policy), sourcePolicy);
   assert.equal(readFileSync(join(reference, "project-context.md"), "utf8"), "Legacy org facts\n");
   assert.equal(readFileSync(join(reference, "coding-standards.md"), "utf8"), "Current project conventions\n");
-  assert.equal(readFileSync(instructions, "utf8"), "# Existing workspace instructions\n");
+  assert.match(readFileSync(instructions, "utf8"), /use the `sf-orchestrator` skill and follow its routing policy/);
+  assert.doesNotMatch(readFileSync(instructions, "utf8"), /Existing workspace instructions/);
+  assert.equal(readFileSync(legacy, "utf8"), "# Old kit instructions\n");
+  assert.equal(readFileSync(personal, "utf8"), "# Personal instructions\n");
   assert.ok(!existsSync(join(home, ".agents")));
 });
