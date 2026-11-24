@@ -6,13 +6,15 @@ disable-model-invocation: true
 
 # Commit to Local Story History
 
-When the user selects this skill, follow the steps below directly. Do not check which agent is active, read other instruction files, load another skill, or delegate. Never edit source files, copy secrets, use MCP, or stage, commit, or push anything in Git.
+When the user selects this skill, follow the steps below directly. Do not check which agent is active, read other instruction files, load another skill, or delegate. Never edit source files, copy secrets, use MCP, or run Git commands. This workflow is for workspaces without Git.
 
 ## Record the change
 
-1. If the user says there is no ticket, stop without writing. If the ticket number is missing, ask **DO you have ticket for this?** and request the number if Yes. Ask for the affected components or workspace root if not clear. Use the provided details without asking again. If component names, paths, or API names are ambiguous, ask instead of recording unrelated dirty files.
-2. Identify exactly which files and lines changed from a supplied diff, edits observed in the session, or a verified prior **After** for the same ticket and file. Do not substitute Git HEAD, another ticket's history, or a guessed baseline. With a verified diff or observed edits already in context, prefer the fast path below; do not read source or ticket files first just to repeat the script's checks.
-3. Otherwise use the manual workflow below. Read only affected source, relevant ticket history, and the local manifest or project metadata needed for the package version. A prior excerpt establishes only the lines it contains. If Before is unavailable for an existing file, ask for a description and the changed lines or locations unless already supplied, then record the description and After only. For confirmed new or deleted files, record only the known side and mark the other side absent. If the changed scope cannot be established, ask before writing.
+1. If the user says there is no ticket, stop without writing. If the ticket number is missing, ask **DO you have ticket for this?** and request the number if Yes. Ask for the workspace root if ambiguous. Use supplied details without asking again.
+2. With a supplied diff or edits observed in the session, identify the exact files and lines and use the fast path when eligible. Do not reread source or ticket files first just to repeat the script's checks.
+3. For a manual edit, compare the saved file to the latest usable **After** for that file in the same ticket. If the prompt only gives the ticket and a description, start with the source paths in that ticket's latest numbered change. Compare those files on disk before asking for the component or line. Do not scan unrelated files or other tickets.
+4. Record a manual difference only when it matches the user's description and the unchanged context identifies one location in the saved file. For example, with `/commit CWDT-1111 i added a comment`, if the prior **After** shows `//test2` followed by `}` and the saved file has `//Test3` inserted between them, record `//Test3` only. An existing `//test2` is not evidence that the new edit was already recorded.
+5. A prior excerpt proves only the region it shows. If there is no unique matching difference, ask only for the missing file, description, or changed location; do not report the whole file unchanged based on an excerpt. Once scope is clear, if Before is unavailable for an existing file, record the description and After only. For confirmed new or deleted files, record only the known side and mark the other side absent. Use the fast path for verified edits when eligible and the manual workflow otherwise.
 
 ## Fast path: known edits to existing LWC or Apex files
 

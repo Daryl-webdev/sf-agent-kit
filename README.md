@@ -46,7 +46,9 @@ Optional org-specific Salesforce skills provide current platform mechanics only;
 
 Recording is opt-in. After editing, select **`/commit`** in Copilot or **`$commit`** in Codex. The skill contains the whole workflow; there is no agent to select or routing step to run first. Ordinary edits do not trigger ticket questions or story writes.
 
-For example: `$commit CWDT-3094: LWC myTodoApp and Apex myTodoAppCtrl`. The skill asks for a ticket or component scope only if missing. With ticket `CWDT-3094`, the first entry goes under `.agents/project/stories/CWDT-3094/CWDT-3094_c001/`. Each affected component gets one Markdown file, such as `LWC - myTodoApp.md`, and the ticket's `solution-design.md` and `package.md` are updated. The workspace installer creates the empty story root and never replaces existing stories, even with `--force`.
+For example: `/commit CWDT-1111 i added a comment`. If the ticket already has a snapshot, the skill compares its recorded files with the saved files and records a change that uniquely matches the description. If the snapshot doesn't cover the edit or the match is ambiguous, the skill asks for the changed file or location. No Git is needed.
+
+The first entry for `CWDT-3094` goes under `.agents/project/stories/CWDT-3094/CWDT-3094_c001/`. Each affected component gets one Markdown file, such as `LWC - myTodoApp.md`, and the ticket's `solution-design.md` and `package.md` are updated. The workspace installer creates the empty story root and never replaces existing stories, even with `--force`.
 
 Snapshots show only the files that changed, with the actual line number and up to two context lines on either side. For a JS-only LWC change, unchanged HTML and metadata XML are omitted. A previous After can supply Before only for the lines it verifies. If Before is unavailable, the skill asks for the change details and records just the current excerpt. New files are marked as new.
 
