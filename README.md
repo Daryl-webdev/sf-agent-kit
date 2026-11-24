@@ -48,7 +48,9 @@ Recording is opt-in. After editing, select **`/commit`** in Copilot or **`$commi
 
 For example: `$commit CWDT-3094: LWC myTodoApp and Apex myTodoAppCtrl`. The skill asks for a ticket or component scope only if missing. With ticket `CWDT-3094`, the first entry goes under `.agents/project/stories/CWDT-3094/CWDT-3094_c001/`. Each affected component gets one Markdown file, such as `LWC - myTodoApp.md`, and the ticket's `solution-design.md` and `package.md` are updated. The workspace installer creates the empty story root and never replaces existing stories, even with `--force`.
 
-For an existing component, the most recent recorded After for that ticket and component becomes the Before. If none is available, the skill records the change description and current snapshot without fabricating a Before. New components are marked as new. No Git commit or org connection is involved.
+Snapshots show only the files that changed, with the actual line number and up to two context lines on either side. For a JS-only LWC change, unchanged HTML and metadata XML are omitted. A previous After can supply Before only for the lines it verifies. If Before is unavailable, the skill asks for the change details and records just the current excerpt. New files are marked as new.
+
+Each change section in `package.md` contains a complete, copy-ready Salesforce `package.xml` block. Deleted components are noted separately, not included as deployable members. The skill does not create a Git commit, a deployment file, or an org connection.
 
 ## Quick start
 
