@@ -6,15 +6,49 @@ disable-model-invocation: true
 
 # Commit to Local Story History
 
-When the user selects this skill, follow the steps below directly. Do not check which agent is active, read other instruction files, load another skill, or delegate. Read only the affected source, relevant ticket history, and local manifest or project metadata needed for the package version. Never edit source files.
+When the user selects this skill, follow the steps below directly. Do not check which agent is active, read other instruction files, load another skill, or delegate. Never edit source files, copy secrets, use MCP, or stage, commit, or push anything in Git.
 
 ## Record the change
 
-1. If the user says there is no ticket, stop without writing. If the ticket number is missing, ask **DO you have ticket for this?** and request the number if Yes. Ask for the affected components if not supplied. Use the provided details without asking again. If component names, paths, or API names are ambiguous, ask instead of recording unrelated dirty files.
-2. Identify exactly which files and lines changed from a supplied diff, edits observed in the session, or a comparison with a verified prior **After** for the same ticket and file. A prior excerpt establishes only the lines it contains, not the rest of the file. Do not infer that other files or lines changed, or substitute Git HEAD, another ticket's history, or a guessed baseline.
-3. If Before is unavailable for an existing file, ask for a description and the changed lines or locations unless already supplied. Record the description in `solution-design.md` and show only the relevant After excerpts. For confirmed new or deleted files, all lines are new or removed; record only the known side and mark the other side absent. If the changed scope cannot be established, ask before writing.
+1. If the user says there is no ticket, stop without writing. If the ticket number is missing, ask **DO you have ticket for this?** and request the number if Yes. Ask for the affected components or workspace root if not clear. Use the provided details without asking again. If component names, paths, or API names are ambiguous, ask instead of recording unrelated dirty files.
+2. Identify exactly which files and lines changed from a supplied diff, edits observed in the session, or a verified prior **After** for the same ticket and file. Do not substitute Git HEAD, another ticket's history, or a guessed baseline. With a verified diff or observed edits already in context, prefer the fast path below; do not read source or ticket files first just to repeat the script's checks.
+3. Otherwise use the manual workflow below. Read only affected source, relevant ticket history, and the local manifest or project metadata needed for the package version. A prior excerpt establishes only the lines it contains. If Before is unavailable for an existing file, ask for a description and the changed lines or locations unless already supplied, then record the description and After only. For confirmed new or deleted files, record only the known side and mark the other side absent. If the changed scope cannot be established, ask before writing.
 
-## Write the story
+## Fast path: known edits to existing LWC or Apex files
+
+Call [record.mjs](./scripts/record.mjs) once; resolve its path relative to this installed `SKILL.md`. Run `node "<resolved script path>" "<workspace root>"` and pipe the JSON below to its stdin as UTF-8. In Windows PowerShell, set `$OutputEncoding = [System.Text.UTF8Encoding]::new($false)` and pipe a single-quoted here-string containing the JSON. Do not create a payload file or read the script first.
+
+```json
+{
+  "ticket": "CWDT-3094",
+  "description": "Rename the to-do list title.",
+  "components": [{
+    "type": "LWC",
+    "apiName": "myTodoApp",
+    "files": [{
+      "path": "force-app/main/default/lwc/myTodoApp/myTodoApp.js",
+      "hunks": [{
+        "beforeLine": 2,
+        "afterLine": 2,
+        "lines": [
+          " export default class MyTodoApp extends LightningElement {",
+          "   tasks = [];",
+          "-  title = 'Tasks';",
+          "+  title = 'My tasks';",
+          "   completed = 0;",
+          " }"
+        ]
+      }]
+    }]
+  }]
+}
+```
+
+- Use `LWC` or `Apex` and list only changed physical files. Send ordered, non-overlapping hunks with 1-based start lines for the first supplied row on each side. Rows start with a space for verified context, `-` for Before, or `+` for After. Include up to two verified unchanged lines on either side; combine nearby changes in one hunk if their context overlaps. Do not invent source or context. If a hunk removes lines without adding any, include verified After context unless the file is now empty.
+- Include optional `rationale` and `verification` only when known. Set `apiVersion` when the intended manifest's version is known; otherwise the helper uses `sfdx-project.json`. If a particular manifest is intended but its version is unknown, resolve that version first.
+- Report the returned story path only on success. On stale evidence, refresh or ask before retrying. For unsupported changes (including new/deleted files or other metadata), use the manual workflow. On a permission error or incomplete write, report the blocker; do not retry blindly or switch to manual writes.
+
+## Manual workflow: write the story
 
 Use this layout under the current workspace. Ask if the workspace root is ambiguous.
 

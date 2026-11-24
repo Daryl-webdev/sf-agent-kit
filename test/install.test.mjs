@@ -57,6 +57,9 @@ function assertSkills(root, includeCodex) {
   assert.match(commitSkill, /CWDT-3094_c001/);
   assert.match(commitSkill, /solution-design\.md/);
   assert.match(commitSkill, /package\.md/);
+  assert.match(commitSkill, /\]\(\.\/scripts\/record\.mjs\)/);
+  assert.deepEqual(readFileSync(join(commitDir, "scripts", "record.mjs")),
+    readFileSync(new URL("../skills/commit/scripts/record.mjs", import.meta.url)));
   assert.match(readFileSync(join(commitDir, "agents", "openai.yaml"), "utf8"), /^policy:\r?\n  allow_implicit_invocation: false\r?$/m);
   assert.ok(!existsSync(join(skills, "local-commit")));
 }

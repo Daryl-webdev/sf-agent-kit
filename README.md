@@ -50,6 +50,8 @@ For example: `$commit CWDT-3094: LWC myTodoApp and Apex myTodoAppCtrl`. The skil
 
 Snapshots show only the files that changed, with the actual line number and up to two context lines on either side. For a JS-only LWC change, unchanged HTML and metadata XML are omitted. A previous After can supply Before only for the lines it verifies. If Before is unavailable, the skill asks for the change details and records just the current excerpt. New files are marked as new.
 
+When a verified diff for an edit to an existing LWC or Apex file is already available, `commit` uses its bundled Node helper in one local call. It checks the diff against the current file, creates the next numbered change folder, and updates the ticket notes without loading them into chat. Other changes still use the manual workflow in the same skill. Invocation is unchanged.
+
 Each change section in `package.md` contains a complete, copy-ready Salesforce `package.xml` block. Deleted components are noted separately, not included as deployable members. The skill does not create a Git commit, a deployment file, or an org connection.
 
 ## Quick start
