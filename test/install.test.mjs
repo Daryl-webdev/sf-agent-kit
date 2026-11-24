@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
@@ -8,8 +8,9 @@ import { fileURLToPath } from "node:url";
 
 const installer = fileURLToPath(new URL("../bin/install.mjs", import.meta.url));
 const sourcePolicy = readFileSync(new URL("../skills/sf-orchestrator/references/routing.md", import.meta.url));
-const domains = ["apex-test", "developer-skills", "reviewing-code", "ui-developer"];
+const sharedSkills = ["apex-test", "commit", "developer-skills", "reviewing-code", "ui-developer"];
 const routingFile = "sf-agent-routing.md";
+const storyRoot = [".agents", "project", "stories"];
 
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), "sf-agent-kit-test-"));
@@ -39,7 +40,7 @@ function write(file, contents) {
 
 function assertSkills(root, includeCodex) {
   const skills = join(root, ".agents", "skills");
-  for (const name of [...domains, ...(includeCodex ? ["sf-orchestrator"] : [])]) {
+  for (const name of [...sharedSkills, ...(includeCodex ? ["sf-orchestrator"] : [])]) {
     const entry = readFileSync(join(skills, name, "SKILL.md"), "utf8").replaceAll("\r\n", "\n");
     assert.ok(entry.startsWith(`---\nname: ${name}\ndescription:`));
     for (const [, target] of entry.matchAll(/\]\((references\/[^)]+)\)/g)) {
@@ -49,6 +50,10 @@ function assertSkills(root, includeCodex) {
   const skillDir = join(skills, "sf-orchestrator");
   assert.equal(existsSync(skillDir), includeCodex);
   if (includeCodex) assert.deepEqual(readFileSync(join(skillDir, "references", "routing.md")), sourcePolicy);
+  const commitDir = join(skills, "commit");
+  assert.match(readFileSync(join(commitDir, "SKILL.md"), "utf8"), /^disable-model-invocation: true\r?$/m);
+  assert.match(readFileSync(join(commitDir, "agents", "openai.yaml"), "utf8"), /^policy:\r?\n  allow_implicit_invocation: false\r?$/m);
+  assert.ok(!existsSync(join(skills, "local-commit")));
 }
 
 test("Codex-only personal install creates instructions, preserves them by default, and replaces them with --force", (t) => {
@@ -65,6 +70,8 @@ test("Codex-only personal install creates instructions, preserves them by defaul
   assert.equal(readFileSync(instructions, "utf8"), generated);
   assert.ok(!existsSync(join(home, ".copilot", "agents")));
   assert.ok(existsSync(join(cwd, ".agents", "reference", "project-context.md")));
+  assert.ok(!existsSync(join(cwd, ...storyRoot)));
+  assert.ok(!existsSync(join(home, ...storyRoot)));
 });
 
 test("Codex personal instructions honor CODEX_HOME", (t) => {
@@ -118,4 +125,22 @@ test("combined workspace installs refresh kit files while preserving or migratin
   assert.equal(readFileSync(legacy, "utf8"), "# Old kit instructions\n");
   assert.equal(readFileSync(personal, "utf8"), "# Personal instructions\n");
   assert.ok(!existsSync(join(home, ".agents")));
+});
+
+test("workspace install initializes an empty story root and preserves existing stories on update", (t) => {
+  const { cwd, home, run } = fixture(t);
+  const stories = join(cwd, ...storyRoot);
+  run("--all", "--workspace");
+  assert.deepEqual(readdirSync(stories), []);
+  assert.ok(!existsSync(join(home, ...storyRoot)));
+  const ticket = join(stories, "TEST-42");
+  const snapshot = join(ticket, "TEST-42_c001", "LWC - myTodoApp.md");
+  const docs = join(ticket, "solution-design.md");
+  write(snapshot, "## Before\n\nOld source\n\n## After\n\nNew source\n");
+  write(docs, "# Existing design\n");
+  run("--all", "--workspace", "--force");
+  assert.deepEqual(readdirSync(stories), ["TEST-42"]);
+  assert.deepEqual(readdirSync(ticket).sort(), ["TEST-42_c001", "solution-design.md"]);
+  assert.equal(readFileSync(snapshot, "utf8"), "## Before\n\nOld source\n\n## After\n\nNew source\n");
+  assert.equal(readFileSync(docs, "utf8"), "# Existing design\n");
 });

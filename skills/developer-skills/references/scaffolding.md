@@ -1,0 +1,7 @@
+# Local Salesforce Scaffolding
+
+- Resolve the target package directory and API version from `sfdx-project.json` and nearby metadata. Check that the target bundle or class and its metadata do not already exist before generating. Never regenerate existing files to make a fix.
+- Scaffold a new production Apex class with `sf template generate apex class --name MyClass --output-dir force-app\main\default\classes`. This creates a class and its metadata, not a test class. Adjust the example path to the actual package.
+- For a new LWC, use a project-approved local scaffold that omits tests, or use `sf template generate lightning component --name myComponent --type lwc --output-dir force-app\main\default\lwc` only when the template's entire output is in scope. The default Salesforce CLI LWC template generates a Jest file under `__tests__`; do not run it for a production-only request. If there is no verified no-test scaffold, create the HTML, JavaScript, and `.js-meta.xml` with file-edit tools instead; add CSS only if needed.
+- Older Salesforce CLI versions may provide `sf apex generate class` and `sf lightning generate component` instead. Use the installed command's `--help` if the current command is unavailable. Scaffolding is local: do not connect to an org, use MCP, or deploy to generate files.
+- Use file-edit tools to add the actual implementation and required project headers. Verify that metadata is present, the API version matches the project, and the resulting files stay within scope.

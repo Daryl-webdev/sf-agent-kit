@@ -228,6 +228,7 @@ if (copilot) {
 await copyTree("skills", join(root, "skills"), targets.skills, (name) => codex || name !== CODEX_SKILL);
 if (codex) await installCodexInstructions(targets.codexInstructions);
 await seedProjectReferences();
+if (workspace) await mkdir(join(projectRoot, ".agents", "project", "stories"), { recursive: true });
 
 await maybeConfigureMcp();
 
