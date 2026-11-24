@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Installs personal agents + skills for Copilot (~/.copilot) and Codex (~/.codex), or a workspace (./.agents, ./.codex).
+// Installs Copilot agents and shared skills for Copilot and Codex.
 import { cp, mkdir, readdir, stat, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
@@ -26,8 +26,8 @@ const noneSelected = !wantCopilot && !wantCodex;
 const copilot = wantCopilot || noneSelected;
 const codex = wantCodex || noneSelected;
 
-// The single agent Codex uses (stored in its AGENTS.md).
-const CODEX_AGENT = "SF-Agent (Skill Orch).agent.md";
+const CODEX_SKILL = "sf-orchestrator";
+const ROUTING_POLICY = "sf-agent-routing.md";
 
 // MCP servers the agents/skills reference; server names must match the tools frontmatter (e.g. "salesforce-dx/*").
 const MCP_SERVERS = {
@@ -40,51 +40,39 @@ const MCP_SERVERS = {
 };
 
 const home = homedir();
+const projectRoot = process.cwd();
 const targets = {
-  copilotAgents: workspace ? resolve(process.cwd(), ".agents/agents") : join(home, ".copilot/agents"),
-  copilotSkills: workspace ? resolve(process.cwd(), ".agents/skills") : join(home, ".copilot/skills"),
-  // Reference is ALWAYS project-scoped (project-context.md is per-org); never user/global.
-  copilotReference: resolve(process.cwd(), ".agents/reference"),
-  codexSkills: workspace ? resolve(process.cwd(), ".codex/skills") : join(home, ".codex/skills"),
-  codexReference: resolve(process.cwd(), ".codex/reference"),
-  codexAgents: workspace ? resolve(process.cwd(), ".codex/AGENTS.md") : join(home, ".codex/AGENTS.md"),
+  copilotAgents: workspace ? resolve(projectRoot, ".github/agents") : join(home, ".copilot/agents"),
+  skills: workspace ? resolve(projectRoot, ".agents/skills") : join(home, ".agents/skills"),
+  projectReference: resolve(projectRoot, ".agents/reference"),
+  legacyReference: resolve(projectRoot, ".codex/reference"),
+  copilotPolicy: workspace ? resolve(projectRoot, ".agents/reference") : join(home, ".copilot/reference"),
 };
 
-async function copyTree(name, src, dest) {
-  if (!existsSync(src)) return;
-  await mkdir(dest, { recursive: true });
-  for (const entry of await readdir(src)) {
-    const from = join(src, entry);
-    const to = join(dest, entry);
-    if (existsSync(to) && !force) {
-      console.log(`skip   ${name}/${entry} (exists, use --force to overwrite)`);
-      continue;
-    }
-    const s = await stat(from);
-    await cp(from, to, { recursive: s.isDirectory() });
-    console.log(`install ${name}/${entry}`);
+async function installEntry(label, src, dest, overwrite = force) {
+  if (existsSync(dest) && !overwrite) {
+    console.log(`skip   ${label} (exists)`);
+    return;
+  }
+  const source = await stat(src);
+  await mkdir(dirname(dest), { recursive: true });
+  await cp(src, dest, { recursive: source.isDirectory() });
+  console.log(`install ${label}`);
+}
+
+async function copyTree(label, src, dest, include = () => true) {
+  for (const entry of (await readdir(src)).filter(include)) {
+    await installEntry(`${label}/${entry}`, join(src, entry), join(dest, entry));
   }
 }
 
-// Strip YAML frontmatter, returning the markdown body.
-function stripFrontmatter(text) {
-  const m = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
-  return m ? text.slice(m[0].length).replace(/^\s+/, "") : text;
-}
-
-async function installCodexAgent(srcAgent, destFile) {
-  if (!existsSync(srcAgent)) {
-    console.log(`skip   codex/AGENTS.md (source agent missing)`);
-    return;
+async function seedProjectReferences() {
+  const referenceDir = join(root, "reference");
+  for (const entry of await readdir(referenceDir)) {
+    const legacy = join(targets.legacyReference, entry);
+    const src = existsSync(legacy) ? legacy : join(referenceDir, entry);
+    await installEntry(`reference/${entry}`, src, join(targets.projectReference, entry), false);
   }
-  if (existsSync(destFile) && !force) {
-    console.log(`skip   codex/AGENTS.md (exists, use --force to overwrite)`);
-    return;
-  }
-  await mkdir(dirname(destFile), { recursive: true });
-  const body = stripFrontmatter(await readFile(srcAgent, "utf8"));
-  await writeFile(destFile, body, "utf8");
-  console.log(`install codex/AGENTS.md`);
 }
 
 // VS Code's user-level config dir (where its mcp.json lives), per platform.
@@ -210,19 +198,19 @@ async function maybeInstallSfSkills() {
   if (r.status !== 0) console.log("warn   sf-skills install failed; run `npx skills add forcedotcom/sf-skills` manually");
 }
 
-console.log(`Installing my-agent-kit -> ${workspace ? "workspace (.agents/.codex)" : "user (~/.copilot, ~/.codex)"}`);
+console.log(`Installing sf-agent-kit -> ${workspace ? "workspace" : "user profile"}`);
 
 if (copilot) {
-  await copyTree("copilot/agents", join(root, "agents"), targets.copilotAgents);
-  await copyTree("copilot/skills", join(root, "skills"), targets.copilotSkills);
-  await copyTree("copilot/reference", join(root, "reference"), targets.copilotReference);
+  await copyTree("copilot/agents", join(root, "agents"), targets.copilotAgents, (name) => name.endsWith(".agent.md"));
+  await installEntry(
+    `copilot/reference/${ROUTING_POLICY}`,
+    join(root, "skills", CODEX_SKILL, "references", "routing.md"),
+    join(targets.copilotPolicy, ROUTING_POLICY),
+  );
 }
 
-if (codex) {
-  await copyTree("codex/skills", join(root, "skills"), targets.codexSkills);
-  await copyTree("codex/reference", join(root, "reference"), targets.codexReference);
-  await installCodexAgent(join(root, "agents", CODEX_AGENT), targets.codexAgents);
-}
+await copyTree("skills", join(root, "skills"), targets.skills, (name) => codex || name !== CODEX_SKILL);
+await seedProjectReferences();
 
 await maybeConfigureMcp();
 

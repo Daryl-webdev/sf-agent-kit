@@ -9,6 +9,11 @@ Fill this in with your org's facts. Agents read it to ground every plan and all 
 - Source format root: `force-app/main/default`
 - Primary org type: TODO (production / sandbox / scratch)
 
+## Apex test coverage
+
+- **Apex test coverage target:** `85%` (default minimum)
+- Every Apex test task must meet or exceed this target. A bypass or lower target is permitted only when the user explicitly instructs a bypass or provides an acceptable coverage target/threshold.
+
 ## Naming prefixes
 
 These fully control prefixing. coding-standards.md reads them generically, so you **never edit that file** when adding or changing a prefix — just edit the rows below.

@@ -39,3 +39,44 @@ LWC folders camelCase; constants UPPER_SNAKE_CASE.
 - Default `with sharing`; `inherited sharing` for reusable libraries; document any `without sharing`.
 - Each domain defines a `<Domain>Exception`; `@AuraEnabled` methods translate failures to `AuraHandledException` with a user-safe message.
 - New metadata targets API version `<API_VERSION>`.
+- Comment patterns:
+  - Apex methods:
+
+    ```apex
+    /**********************************************************************************************
+     * @description Describe the method.
+     * @param parameterName Describe the parameter. Omit when there are no parameters.
+     * @return Describe the returned value. Omit when the method returns void.
+     **********************************************************************************************/
+    ```
+
+  - Apex class headers:
+
+    ```apex
+    /**
+     * @File Name          : HSAAP_MaternitySearchRequestSender
+     * @description        : Handles sending Maternity Search requests to the
+     *                       maternity-transactions external API.
+     * @Author             : Daryl Grimaldo
+     * @Group              : <Domain without Prefix>
+     *==============================================================================
+     * Ver         Date             Author                  Modification
+     *==============================================================================
+     * 1.0       <Date.Now()>     Daryl Grimaldo        Created
+     */
+    ```
+
+  - LWC JavaScript headers:
+
+    ```javascript
+    /**
+     * @File Name          : componentName.js
+     * @description        : Describe the component.
+     * @Author             : Author Name
+     * @Group              : Group Name
+     *==============================================================================
+     * Ver         Date             Author                  Modification
+     *==============================================================================
+     * 1.0         Aug-11-2026      Author Name             Created
+     */
+    ```

@@ -8,105 +8,37 @@ A single source of truth for your custom AI agents and skills. Author them once,
 
 ## Overview
 
-`sf-agent-kit` packages a curated set of Salesforce-focused **agents** (orchestrators and specialists) and **skills** (reusable workflows) and installs them into each tool's expected location and format:
+One Salesforce/React workflow, two host-specific entry points:
 
-| Asset | GitHub Copilot | OpenAI Codex |
+| Host | Start here | Execution |
 | --- | --- | --- |
-| Skills (user) | `~/.copilot/skills` | `~/.codex/skills` |
-| Skills (workspace) | `./.agents/skills` | `./.codex/skills` |
-| Reference (project, always) | `./.agents/reference` | `./.codex/reference` |
-| Agents (user) | all agents → `~/.copilot/agents` | SF-Agent (Skill Orch) → `~/.codex/AGENTS.md` |
+| GitHub Copilot | Select **SF-Agent** in the custom-agent picker | Delegates implementation, UI, Apex test authoring, and review to specialists. Plans and existing-test runs stay with the orchestrator. |
+| OpenAI Codex | Type **`$sf-orchestrator`** in a task prompt | Applies the selected domain skill inline, without spawning subagents. The installer does not write `AGENTS.md`. |
 
-Skills share the same `SKILL.md` format across both tools, so they are 100% portable. Agents differ per tool, so Copilot receives every agent while Codex receives the single orchestrator merged into its `AGENTS.md`.
-
-**Reference** is a project-specific source of truth (org-specific coding standards, a planning template, and an org-context scaffold) that skills and agents read *before* planning or generating code, so output is consistent prompt-to-prompt. It deliberately carries only what the model can't reliably know (your org's facts and opinionated conventions), not generic Salesforce best practice. It **always installs at project scope** (into the current project, never your user profile) because `project-context.md` is per-org. Skills cite the reference rather than restating it — edit it in one place. Populate `reference/project-context.md` with your org's facts to get the biggest accuracy gain.
+Both use the same [routing policy](skills/sf-orchestrator/references/routing.md). It classifies intent before domain: plan-only and review-only requests never edit code, run-only requests don't author tests or deploy, and test edits and deployment need explicit authorization. Tools and references are local-first. A simple task gets one owner and no full plan or automatic second review. Complex work gets one plan and is ordered by actual dependencies.
 
 ## Repository structure
 
 ```text
-sf-agent-kit/
-├── agents/            # *.agent.md files (Copilot subagents)
-├── skills/            # skill folders, each with a SKILL.md
-├── reference/         # project source of truth cited by skills + agents
-├── bin/install.mjs    # cross-tool installer
-└── package.json
+agents/                         # Copilot entry point and specialists
+skills/sf-orchestrator/          # Codex entry point + canonical routing policy
+skills/<domain>/                 # Shared workflows and on-demand examples
+reference/                      # Project templates (org context, standards, plan)
+bin/install.mjs                 # Installer for both hosts
 ```
 
-## How it flows
+## Install locations
 
-### Install flow
+| Artifact | Workspace | Personal |
+| --- | --- | --- |
+| Copilot agents | `.github/agents/` | `~/.copilot/agents/` |
+| Shared skills | `.agents/skills/` | `~/.agents/skills/` |
+| Copilot routing policy | `.agents/reference/sf-agent-routing.md` | `~/.copilot/reference/sf-agent-routing.md` |
+| Project references | `.agents/reference/` | Still project-scoped: `.agents/reference/` |
 
-```mermaid
-flowchart LR
-    subgraph KIT["sf-agent-kit (this repo)"]
-        AG["agents/ — 6 agent files"]
-        SK["skills/ — 4 skills"]
-        RF["reference/ — org source of truth"]
-    end
+The Codex skill is included by `--codex` and `--all`. Its copy of the policy ships inside its skill folder. A Copilot-only install does not ship the Codex entry point. If both hosts share a skills root, the Codex skill may also be visible in Copilot; select **SF-Agent** when you want delegation.
 
-    INST(["bin/install.mjs"])
-    AG --> INST
-    SK --> INST
-    RF --> INST
-
-    subgraph COP["GitHub Copilot"]
-        CAG["all agents<br/>~/.copilot/agents or .agents/agents"]
-        CSK["skills<br/>~/.copilot/skills or .agents/skills"]
-    end
-
-    subgraph CDX["OpenAI Codex"]
-        XAG["SF-Agent (Skill Orch) only<br/>merged into AGENTS.md"]
-        XSK["skills<br/>~/.codex/skills or .codex/skills"]
-    end
-
-    REFP["reference/<br/>.agents/reference + .codex/reference<br/>(always project scope — per-org facts)"]
-    SFS["forcedotcom/sf-skills<br/>.agents/skills (project scope)"]
-    MCP["MCP servers<br/>salesforce-dx · context7 · ui-ux-pro<br/>merged into each tool's config"]
-
-    INST --> CAG
-    INST --> CSK
-    INST --> XAG
-    INST --> XSK
-    INST --> REFP
-    INST -. "--sf-skills (optional)" .-> SFS
-    INST -. "default on (--no-mcp skips)" .-> MCP
-```
-
-### Runtime flow (how a task resolves)
-
-```mermaid
-flowchart TB
-    U["User task"] --> ORCH["Orchestrator<br/>SF-Agent (subagents) or SF-Agent Skill Orch (skills only)"]
-    ORCH --> GATE{"Complexity gate"}
-    GATE -- "simple: single file, fix,<br/>one config, review" --> ROUTE{"Route by task type"}
-    GATE -- "complex: multi-object, data model,<br/>async, integration" --> RPD["Research (DX MCP inventory)<br/>→ Plan (planning-template.md)<br/>→ Design check (platform limits)"]
-    RPD --> ROUTE
-
-    ROUTE -- code --> DEV["Developer<br/>developer-skills"]
-    ROUTE -- UI --> UID["UI-Developer<br/>ui-developer"]
-    ROUTE -- "tests (explicit only)" --> APT["Apex-Tester<br/>apex-test"]
-    ROUTE -- review --> CRV["Code-Reviewer<br/>reviewing-code"]
-
-    DEV --> AUG
-    UID --> AUG
-    APT --> AUG
-    CRV --> AUG
-
-    AUG{"Matching local sf-skill<br/>in .agents/skills/?"} -- yes --> MECH["Augment with platform mechanics<br/>(platform-*, experience-*, automation-*,<br/>design-systems-*, dx-*)"]
-    AUG -- no --> REF
-    MECH --> REF["Ground in reference/<br/>project-context · coding-standards · planning-template"]
-    REF --> IMPL["Implement + Validate"]
-    IMPL --> LOOP["Review–revise loop<br/>(gate: Blocker/Critical/Major, max 2 iterations)"]
-    LOOP --> DONE["Report to user"]
-```
-
-### Conflict precedence (who wins when guidance disagrees)
-
-1. **Kit skill + `reference/`** — your intent: workflow, conventions, naming, checklists, output format
-2. **Local sf-skills** — platform mechanics only: current API/tool syntax, CLI commands, metadata formats (they track platform changes)
-3. **Generic model knowledge** — fills remaining gaps
-
-> sf-skills are renamed upstream often; skills match them by domain-first prefix (`platform-*`, `experience-*`, `automation-*`, `design-systems-*`, `dx-*`), never by hardcoded name.
+Optional org-specific Salesforce skills provide current platform mechanics only; they do not override routing, conventions, or the user's permissions. Use them only for a concrete gap in the task.
 
 ## Quick start
 
@@ -126,7 +58,7 @@ npx github:Daryl-webdev/sf-agent-kit --codex
 # Scope to the current repository instead of the user profile
 npx github:Daryl-webdev/sf-agent-kit --all --workspace
 
-# Overwrite files that already exist
+# Refresh kit agents, skills, and routing policy
 npx github:Daryl-webdev/sf-agent-kit --all --force
 ```
 
@@ -138,7 +70,7 @@ npx github:Daryl-webdev/sf-agent-kit --all --force
 | `--copilot` | Install to GitHub Copilot only |
 | `--codex` | Install to OpenAI Codex only |
 | `--workspace` | Install into the current repo instead of the user home directory |
-| `--force` | Overwrite existing files |
+| `--force` | Refresh kit agents, skills, and routing policy; never overwrite `AGENTS.md` or project reference files |
 | `--sf-skills` | Also install Salesforce's official skills (`forcedotcom/sf-skills`). Bare flag opens the CLI's interactive picker; `--sf-skills=all` installs everything; `--sf-skills=a,b` installs specific skills |
 | `--no-sf-skills` | Skip the sf-skills prompt entirely |
 | `--no-mcp` | Skip MCP server configuration (`salesforce-dx`, `context7`, `ui-ux-pro` are configured by default for the selected tools) |
@@ -161,11 +93,11 @@ npx github:Daryl-webdev/sf-agent-kit --codex      # Codex only
 
 **Scope**
 ```bash
-npx github:Daryl-webdev/sf-agent-kit --all                # user (~/.copilot, ~/.codex)
-npx github:Daryl-webdev/sf-agent-kit --all --workspace    # this repo (.agents, .codex)
+npx github:Daryl-webdev/sf-agent-kit --all                # user (~/.copilot, ~/.agents)
+npx github:Daryl-webdev/sf-agent-kit --all --workspace    # this repo (.github, .agents)
 ```
 
-**Force overwrite**
+**Refresh kit files**
 ```bash
 npx github:Daryl-webdev/sf-agent-kit --all --force
 npx github:Daryl-webdev/sf-agent-kit --copilot --workspace --force
@@ -206,13 +138,33 @@ npm run install:workspace  # --all --workspace
 
 - Node.js >= 18
 
-## Updating
+## Updating and migrating
 
-Edit files in `agents/`, `skills/`, or `reference/`, commit and push, then re-run the installer with `--force`:
+To refresh an existing install, use the same scope and flags with `--force`. From a local checkout, for example:
 
-```bash
-npx github:Daryl-webdev/sf-agent-kit --all --force
+```powershell
+node .\bin\install.mjs --all --force --no-mcp --no-sf-skills
 ```
+
+- Back up any personal edits to the installed agents or skills before refreshing them. The installer never modifies `AGENTS.md`. If a previous install added a `# SF-Agent (Skill Orch)` body to `~/.codex/AGENTS.md` or `.codex/AGENTS.md`, inspect the file and remove only the old kit content if you want on-demand routing. Keep your own instructions.
+- Inspect old kit copies under `.agents/agents/` (workspace Copilot), `~/.copilot/skills/` (personal Copilot), and `.codex/skills/` or `~/.codex/skills/` (Codex). Archive old kit copies that collide with the new install, including an old `SF-Agent (Skill Orch).agent.md` in the Copilot agent directory. Do not delete unrelated files; legacy locations are untouched by design.
+- Customize `.agents/reference/project-context.md` and `coding-standards.md` per project. The installer preserves existing files there and seeds a missing file from `.codex/reference/` if available. If both copies already exist, the `.agents/reference/` copy wins; merge any legacy customizations you still need.
+
+## Verification
+
+Run `npm test` for offline installer and packaging regression tests. After installing, start a fresh session in each host and use the same prompts to verify behavior:
+
+| Prompt | Expected result |
+| --- | --- |
+| Plan a new LWC; do not implement it | Plan only; no writes |
+| Review this LWC diff; don't fix it | Findings only; Copilot delegates to Code-Reviewer, Codex reviews inline |
+| Run existing Apex tests for AccountService in the configured test org | Scoped run only; no test edits or deployment |
+| Write Apex tests for AccountService; don't deploy | Apex test authoring only; report unverified coverage if not runnable |
+| Write a Jest test for this LWC | Developer / developer-skills, not Apex authoring |
+| Fix this one CSS rule | One owner; no full template, org discovery, or automatic second review |
+| Implement a data-model change | One shared plan; only needed references and locally unavailable live facts |
+
+For efficiency comparisons, keep model and tools fixed, separate cold and warm sessions, and record tokens (if available), elapsed time, handoffs, and MCP calls. Offline packaging tests do not measure model routing or speed.
 
 ## License
 
